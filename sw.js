@@ -1,4 +1,4 @@
-const CACHE_NAME = 'family-expense-tracker-v1.0.0';
+const CACHE_NAME = 'family-expense-tracker-v1.1.0';
 const APP_FILES = [
   './',
   './index.html',

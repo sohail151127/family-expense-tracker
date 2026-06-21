@@ -77,6 +77,8 @@
     transactionCountText: $('#transactionCountText'),
     dailyAverageText: $('#dailyAverageText'),
     filteredTotalText: $('#filteredTotalText'),
+    personSummaryTotalText: $('#personSummaryTotalText'),
+    personSummaryList: $('#personSummaryList'),
     expenseList: $('#expenseList'),
     incomeList: $('#incomeList'),
     calendarGrid: $('#calendarGrid'),
@@ -592,6 +594,7 @@
     renderSelects();
     const filtered = getFilteredExpenses().sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt));
     els.filteredTotalText.textContent = money(sum(filtered, 'amount'));
+    renderPersonSummary();
     els.expenseList.innerHTML = filtered.length
       ? filtered.map(renderExpenseCard).join('')
       : `<div class="empty-state">No expenses found for selected filter.</div>`;
@@ -616,6 +619,65 @@
     });
     els.incomeList.querySelectorAll('[data-delete-income]').forEach((button) => {
       button.addEventListener('click', () => deleteIncome(button.dataset.deleteIncome));
+    });
+  }
+
+  function renderPersonSummary() {
+    const reportExpenses = getPersonSummaryExpenses();
+    const reportTotal = sum(reportExpenses, 'amount');
+    els.personSummaryTotalText.textContent = money(reportTotal);
+
+    const people = getPeopleForReports();
+    const stats = people.map((person, index) => {
+      const personExpenses = reportExpenses.filter((expense) => expense.personId === person.id);
+      const total = sum(personExpenses, 'amount');
+      const necessary = sum(personExpenses.filter((expense) => (expense.necessity || 'necessary') === 'necessary'), 'amount');
+      const unnecessary = sum(personExpenses.filter((expense) => expense.necessity === 'unnecessary'), 'amount');
+      const percent = reportTotal ? Math.round((total / reportTotal) * 100) : 0;
+      return { person, total, necessary, unnecessary, count: personExpenses.length, percent, index };
+    }).sort((a, b) => (b.total - a.total) || (a.index - b.index));
+
+    const allActive = filters.personId === 'all';
+    const allCard = `
+      <button type="button" class="person-summary-card person-summary-card--all ${allActive ? 'is-active' : ''}" data-person-filter="all">
+        <span class="person-summary-card__top">
+          <strong>All Family</strong>
+          <span>${escapeHtml(money(reportTotal))}</span>
+        </span>
+        <span class="person-summary-card__meta">${reportExpenses.length} expense${reportExpenses.length === 1 ? '' : 's'} in selected filter</span>
+      </button>`;
+
+    const personCards = stats.map(({ person, total, necessary, unnecessary, count, percent }) => {
+      const isActive = filters.personId === person.id;
+      return `
+        <button type="button" class="person-summary-card ${isActive ? 'is-active' : ''}" data-person-filter="${escapeHtml(person.id)}">
+          <span class="person-summary-card__top">
+            <strong>${escapeHtml(person.name)}</strong>
+            <span>${escapeHtml(money(total))}</span>
+          </span>
+          <span class="person-summary-card__bar" aria-hidden="true"><span style="width:${percent}%"></span></span>
+          <span class="person-summary-card__meta">
+            <span>${count} expense${count === 1 ? '' : 's'}</span>
+            <span>${percent}% of total</span>
+          </span>
+          <span class="person-summary-card__split">
+            <span>Necessary: ${escapeHtml(compactMoney(necessary))}</span>
+            <span>Unnecessary: ${escapeHtml(compactMoney(unnecessary))}</span>
+          </span>
+        </button>`;
+    }).join('');
+
+    els.personSummaryList.innerHTML = reportTotal || stats.length
+      ? allCard + personCards
+      : `<div class="empty-state">No person-wise spending found for selected filter.</div>`;
+
+    els.personSummaryList.querySelectorAll('[data-person-filter]').forEach((button) => {
+      button.addEventListener('click', () => {
+        filters.personId = button.dataset.personFilter || 'all';
+        els.filterPerson.value = filters.personId;
+        renderDashboard();
+        els.expenseList.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
     });
   }
 
@@ -766,6 +828,22 @@
       if (filters.necessity !== 'all' && (expense.necessity || 'necessary') !== filters.necessity) return false;
       return true;
     });
+  }
+
+  function getPersonSummaryExpenses() {
+    const range = getDateRange();
+    return state.expenses.filter((expense) => {
+      if (range.from && expense.date < range.from) return false;
+      if (range.to && expense.date > range.to) return false;
+      if (filters.categoryId !== 'all' && expense.categoryId !== filters.categoryId) return false;
+      if (filters.necessity !== 'all' && (expense.necessity || 'necessary') !== filters.necessity) return false;
+      return true;
+    });
+  }
+
+  function getPeopleForReports() {
+    const usedIds = usedPersonIds();
+    return state.people.filter((person) => person.active !== false || usedIds.has(person.id));
   }
 
   function getDateRange() {

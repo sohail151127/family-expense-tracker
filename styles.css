@@ -871,3 +871,102 @@ textarea:focus {
     font-size: 9px;
   }
 }
+
+.person-report-card {
+  overflow: hidden;
+}
+
+.person-summary-list {
+  display: grid;
+  gap: 12px;
+}
+
+.person-summary-card {
+  width: 100%;
+  display: grid;
+  gap: 9px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  color: var(--ink);
+  text-align: left;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, .06);
+  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+
+.person-summary-card:active {
+  transform: scale(.99);
+}
+
+.person-summary-card.is-active {
+  border-color: rgba(212, 166, 42, .95);
+  box-shadow: 0 16px 34px rgba(212, 166, 42, .16);
+  background: linear-gradient(180deg, rgba(255, 251, 235, .92) 0%, #ffffff 100%);
+}
+
+.person-summary-card--all {
+  background: linear-gradient(145deg, #0f172a, #1e293b);
+  color: #fff;
+  border-color: rgba(255, 255, 255, .08);
+}
+
+.person-summary-card--all.is-active {
+  border-color: rgba(212, 166, 42, .95);
+  background: linear-gradient(145deg, #0f172a, #334155);
+}
+
+.person-summary-card__top,
+.person-summary-card__meta,
+.person-summary-card__split {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.person-summary-card__top strong {
+  font-size: 15px;
+  letter-spacing: -.025em;
+}
+
+.person-summary-card__top span {
+  font-weight: 900;
+  font-size: 16px;
+  white-space: nowrap;
+}
+
+.person-summary-card__meta,
+.person-summary-card__split {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.person-summary-card--all .person-summary-card__meta,
+.person-summary-card--all .person-summary-card__split {
+  color: rgba(255, 255, 255, .68);
+}
+
+.person-summary-card__bar {
+  height: 8px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  overflow: hidden;
+}
+
+.person-summary-card__bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #0f172a, #d4a62a);
+  min-width: 0;
+}
+
+@media (max-width: 430px) {
+  .person-summary-card__split {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+}
