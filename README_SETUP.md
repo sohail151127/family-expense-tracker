@@ -1,95 +1,89 @@
-# Family Expense Tracker PWA
+# Family Expense Tracker v2 Premium
 
-This is a mobile-first Progressive Web App for family income and expense tracking.
+This is a mobile-first PWA for family expense tracking.
 
-## Features included
+## What is new in v2
 
-- Installable PWA for Android home screen
-- Works offline after first load
-- Local data storage in the browser
-- Google Sheets backup/sync through Apps Script
-- Income sources: Father Pension, Sohail Income, Other
-- Expense records with amount, date, person, category, necessary/unnecessary, and description
-- Sticky monthly summary: total money, spent, remaining
-- Filters: today, yesterday, this week, this month, custom date, person, category, necessary/unnecessary
-- Calendar month view with daily totals and person tags
-- Add/remove people and categories
-- JSON export/import backup
-- CSV export for Excel/Google Sheets
-- Reset safety with automatic backup export
+- Premium organized layout with bottom navigation: Home, Add, Reports, Calendar, Settings
+- Father Mode and Admin Mode
+- Person-wise expense UI and filters
+- Category-wise, daily trend, income source and account balance graphs
+- Monthly budget planning and saving target
+- Necessary/unnecessary expense tracking with limits
+- Cash/bank/wallet account balances
+- Recurring expenses
+- Pending payments / udhaar tracking
+- Duplicate expense warning
+- Delete undo safety
+- Optional PIN lock
+- Monthly report export
+- Google Sheets backup with new tabs
+- Fully English UI
 
-## Files
+## Update on GitHub Pages
 
-- `index.html` — app markup
-- `styles.css` — premium mobile UI
-- `app.js` — app logic, local storage, filters, calendar, export/import, sync
-- `manifest.webmanifest` — PWA install settings
-- `sw.js` — offline cache service worker
-- `icons/` — PWA icons
-- `google-apps-script.gs` — Google Sheets backend code
+1. Extract this ZIP.
+2. Open your GitHub repository: `family-expense-tracker`.
+3. Click **Add file > Upload files**.
+4. Upload/replace these files and folders from this package:
+   - `index.html`
+   - `styles.css`
+   - `app.js`
+   - `manifest.webmanifest`
+   - `sw.js`
+   - `icons` folder
+   - `README_SETUP.md`
+   - `google-apps-script.gs` can be uploaded too, but it is mainly for Apps Script.
+5. Click **Commit changes**.
+6. Open your live link after 1–2 minutes.
+7. If the old version shows on mobile, open Chrome > App info/Site settings > clear cache for the app, or uninstall and add it again from Chrome.
 
-## How to host on GitHub Pages
+## Update Google Sheets sync
 
-1. Create a new GitHub repository, for example: `family-expense-tracker`.
-2. Upload all files and folders from this package to the repository root.
-3. Go to repository `Settings > Pages`.
-4. Under `Build and deployment`, choose:
-   - Source: `Deploy from a branch`
-   - Branch: `main`
-   - Folder: `/root`
-5. Save.
-6. Open the GitHub Pages URL on Android Chrome.
-7. Tap Chrome menu `⋮` and choose `Add to Home screen` or `Install app`.
+Because v2 adds Accounts, Pending Payments and Recurring Expenses, you should update Apps Script as well.
 
-## How to set up Google Sheets sync
+1. Open your existing Google Sheet.
+2. Go to **Extensions > Apps Script**.
+3. Replace the old code with the full code from `google-apps-script.gs`.
+4. Click Save.
+5. Go to **Deploy > Manage deployments**.
+6. Edit the existing web app deployment or create a new deployment.
+7. Version: New version.
+8. Execute as: Me.
+9. Who has access: Anyone with the link.
+10. Deploy and copy the Web App URL.
+11. In the app, go to **Settings > Backup & sync**.
+12. Paste the URL and click **Save URL**.
+13. Click **Sync now**.
 
-1. Create a new Google Sheet.
-2. In the sheet, go to `Extensions > Apps Script`.
-3. Delete any starter code.
-4. Paste the full contents of `google-apps-script.gs`.
-5. Click Save.
-6. Click `Deploy > New deployment`.
-7. Select type: `Web app`.
-8. Set:
-   - Execute as: `Me`
-   - Who has access: `Anyone with the link`
-9. Click Deploy and allow permissions.
-10. Copy the Web App URL.
-11. Open the PWA > Backup tab > paste URL > Save URL.
-12. Click `Sync Now`.
+After sync, Google Sheet should have these tabs:
 
-The script will create these tabs in your Google Sheet:
+- AppState
+- People
+- Categories
+- Accounts
+- Expenses
+- Income
+- PendingPayments
+- RecurringExpenses
 
-- `AppState`
-- `People`
-- `Categories`
-- `Expenses`
-- `Income`
+## Safe use with two mobiles
 
-## Important notes
+Best flow when using both father mobile and your mobile:
 
-- The app saves locally first. This means your father can use it even if internet is off.
-- If the browser data is cleared, local data can be lost. Google Sheet sync and JSON export protect against that.
-- Use `Export JSON` occasionally as an extra manual backup.
-- `Import Sheet` replaces local data with the latest Google Sheet data, and automatically downloads a backup first.
-- `Reset Local Data` only clears the current browser/device data, not the Google Sheet.
+1. Before adding data on a device, click **Import Sheet**.
+2. Add income/expense.
+3. Click **Sync now**.
 
-## Suggested usage
+This prevents one phone from overwriting newer data from the other phone.
 
-At the start of each month:
+## Install on Android
 
-1. Add Father Pension income.
-2. Add Sohail Income if applicable.
-3. Add each expense daily.
-4. Use the Dashboard to see total, spent, and remaining.
-5. Use Calendar to review spending by date.
-6. Use filters to check necessary vs unnecessary expenses.
+1. Open the GitHub Pages live link in Chrome.
+2. Tap the three-dot menu.
+3. Tap **Add to Home screen** or **Install app**.
+4. Open it from the home screen like a normal app.
 
-## Customization
+## Data safety
 
-You can change the default people and categories inside `app.js`:
-
-- `defaultPeople`
-- `defaultCategories`
-
-You can also edit colors and UI spacing inside `styles.css`.
+The app saves data locally first. Google Sheets is used for backup/sync. Use **Export JSON** sometimes for extra safety.
