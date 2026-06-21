@@ -67,6 +67,16 @@
           <button class="quick-action" data-open-tab="calendar"><span>□</span>Calendar</button>
         </section>
 
+        <section class="card search-card">
+          <div class="section-title-row">
+            <div><h2>Search entries</h2><p class="muted">Find income, expenses and pending payments quickly.</p></div>
+          </div>
+          <div class="search-row">
+            <input id="homeSearch" class="input" type="search" placeholder="Search amount, person, category, note..." />
+            <button id="homeSearchBtn" class="btn btn-secondary" type="button">Search</button>
+          </div>
+        </section>
+
         <section class="metric-grid">
           <div class="metric-card"><span>Necessary</span><strong id="homeNecessary">Rs 0</strong><small id="homeNecessaryLimit">No limit set</small></div>
           <div class="metric-card"><span>Unnecessary</span><strong id="homeUnnecessary">Rs 0</strong><small id="homeUnnecessaryLimit">No limit set</small></div>
@@ -172,6 +182,54 @@
         </section>
       </section>
 
+      <section id="tab-entries" class="tab-panel" data-tab-panel="entries">
+        <section class="card">
+          <div class="section-title-row"><div><h2>All entries</h2><p class="muted">Search and review every income, expense and pending payment in one place.</p></div></div>
+          <div class="filter-grid">
+            <label class="span-2">Search
+              <input id="entriesSearch" class="input" type="search" placeholder="Search description, source, person, category, account, tag..." />
+            </label>
+            <label>Type
+              <select id="entriesType" class="input">
+                <option value="all">All entries</option>
+                <option value="expense">Expenses only</option>
+                <option value="income">Income only</option>
+                <option value="debt">Pending payments only</option>
+              </select>
+            </label>
+            <label>Range
+              <select id="entriesRange" class="input">
+                <option value="thisMonth">This month</option>
+                <option value="today">Today</option>
+                <option value="yesterday">Yesterday</option>
+                <option value="thisWeek">This week</option>
+                <option value="all">All time</option>
+                <option value="custom">Custom range</option>
+              </select>
+            </label>
+            <label id="entriesFromWrap" hidden>From
+              <input id="entriesFrom" class="input" type="date" />
+            </label>
+            <label id="entriesToWrap" hidden>To
+              <input id="entriesTo" class="input" type="date" />
+            </label>
+          </div>
+          <div class="form-actions"><button id="resetEntriesFiltersBtn" class="btn btn-secondary" type="button">Reset</button></div>
+        </section>
+
+        <section class="metric-grid report-metrics">
+          <div class="metric-card"><span>Income</span><strong id="entriesIncomeTotal">Rs 0</strong><small>Selected entries</small></div>
+          <div class="metric-card"><span>Expenses</span><strong id="entriesExpenseTotal">Rs 0</strong><small>Selected entries</small></div>
+          <div class="metric-card"><span>Net</span><strong id="entriesNetTotal">Rs 0</strong><small>Income minus expense</small></div>
+          <div class="metric-card"><span>Count</span><strong id="entriesCount">0</strong><small>Records found</small></div>
+        </section>
+
+        <section class="card">
+          <div class="section-title-row"><div><h2>Entries list</h2><p class="muted">Edit or delete saved records where supported.</p></div></div>
+          <div id="allEntriesList" class="record-list empty-state">No entries found.</div>
+        </section>
+      </section>
+
       <section id="tab-reports" class="tab-panel admin-only" data-tab-panel="reports">
         <section class="card">
           <div class="section-title-row"><div><h2>Reports</h2><p class="muted">Filter expenses and review spending patterns.</p></div></div>
@@ -241,6 +299,70 @@
           <div class="section-title-row"><div><h2>Pending payments</h2><p class="muted">Payables and receivables summary.</p></div></div>
           <div id="debtReportList" class="record-list empty-state">No pending payments.</div>
         </section>
+      </section>
+
+      <section id="tab-notes" class="tab-panel" data-tab-panel="notes">
+        <section id="notesLockBox" class="card notes-lock-card">
+          <div class="section-title-row">
+            <div><h2 id="notesLockTitle">Private notes</h2><p id="notesLockText" class="muted">Enter the Notes code to access private reminder cards.</p></div>
+          </div>
+          <div class="form-grid">
+            <label class="span-2">Notes code
+              <input id="notesPinInput" class="input pin-input-small" type="password" inputmode="numeric" autocomplete="off" placeholder="Enter code" />
+            </label>
+            <div class="form-actions span-2">
+              <button id="notesUnlockBtn" class="btn btn-primary" type="button">Unlock notes</button>
+              <button id="notesSetPinBtn" class="btn btn-primary" type="button">Create notes code</button>
+            </div>
+          </div>
+          <p id="notesPinError" class="error-text" aria-live="polite"></p>
+        </section>
+
+        <div id="notesUnlockedArea" hidden>
+          <section class="card">
+            <div class="section-title-row">
+              <div><h2>Notes</h2><p class="muted">Private reminder cards. These are not included in income or expense calculations.</p></div>
+              <button id="notesLockBtn" class="btn btn-secondary" type="button">Lock notes</button>
+            </div>
+            <div class="search-row">
+              <input id="notesSearch" class="input" type="search" placeholder="Search title, description or tag..." />
+              <button id="addNoteBtn" class="btn btn-primary" type="button">Add note</button>
+            </div>
+          </section>
+
+          <section id="noteEditorCard" class="card note-editor-card" hidden>
+            <div class="section-title-row"><div><h2 id="noteEditorTitle">Add note</h2><p class="muted">Save a reminder card for anything you want to remember.</p></div></div>
+            <form id="noteForm" class="form-grid" autocomplete="off">
+              <input id="noteId" type="hidden" />
+              <label class="span-2">Title
+                <input id="noteTitle" class="input" type="text" placeholder="Example: Money given to Bilal" required />
+              </label>
+              <label class="span-2">Description
+                <textarea id="noteDescription" class="input" rows="4" placeholder="Write full details here..."></textarea>
+              </label>
+              <label class="span-2">Tag
+                <input id="noteTag" class="input" type="text" placeholder="Example: Bilal, loan, reminder" />
+              </label>
+              <div class="form-actions span-2">
+                <button class="btn btn-primary" type="submit">Save note</button>
+                <button id="clearNoteBtn" class="btn btn-secondary" type="button">Cancel</button>
+              </div>
+            </form>
+          </section>
+
+          <section class="card admin-only">
+            <div class="section-title-row"><div><h2>Notes code</h2><p class="muted">Change the private Notes access code.</p></div></div>
+            <div class="search-row">
+              <input id="newNotesPin" class="input" type="password" inputmode="numeric" placeholder="New notes code" />
+              <button id="changeNotesPinBtn" class="btn btn-secondary" type="button">Change code</button>
+            </div>
+          </section>
+
+          <section class="card">
+            <div class="section-title-row"><div><h2>Saved notes</h2><p id="notesCountText" class="muted">No notes yet.</p></div></div>
+            <div id="notesList" class="notes-grid empty-state">No notes found.</div>
+          </section>
+        </div>
       </section>
 
       <section id="tab-calendar" class="tab-panel" data-tab-panel="calendar">
@@ -405,7 +527,9 @@
     <nav class="bottom-nav" aria-label="Main navigation">
       <button class="nav-btn active" data-tab="home"><span>⌂</span>Home</button>
       <button class="nav-btn" data-tab="add"><span>＋</span>Add</button>
+      <button class="nav-btn" data-tab="entries"><span>≡</span>Entries</button>
       <button class="nav-btn admin-nav" data-tab="reports"><span>◔</span>Reports</button>
+      <button class="nav-btn" data-tab="notes"><span>✎</span>Notes</button>
       <button class="nav-btn" data-tab="calendar"><span>▦</span>Calendar</button>
       <button class="nav-btn" data-tab="settings"><span>⚙</span>Settings</button>
     </nav>

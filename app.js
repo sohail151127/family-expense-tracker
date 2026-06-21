@@ -1,8 +1,9 @@
 (() => {
   'use strict';
 
-  const STORAGE_KEY = 'family-expense-tracker-v2-premium';
-  const OLD_STORAGE_KEY = 'family-expense-tracker-v1';
+  const STORAGE_KEY = 'family-expense-tracker-v3-notes-entries';
+  const OLD_STORAGE_KEY = 'family-expense-tracker-v2-premium';
+  const LEGACY_STORAGE_KEY = 'family-expense-tracker-v1';
   const SYNC_DEBOUNCE_MS = 1600;
 
   const defaultPeople = [
@@ -37,7 +38,7 @@
   ];
 
   const initialState = () => ({
-    version: 2,
+    version: 3,
     settings: {
       currency: 'PKR',
       selectedMonth: monthKey(new Date()),
@@ -45,6 +46,7 @@
       warningPercent: 20,
       usageMode: 'admin',
       pinHash: '',
+      notesPinHash: '',
       budget: {
         expectedIncome: 0,
         savingTarget: 0,
@@ -59,6 +61,7 @@
     incomes: [],
     debts: [],
     recurringExpenses: [],
+    notes: [],
     meta: {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -90,6 +93,44 @@
     homeMonthPicker: $('#homeMonthPicker'),
     homePrevMonth: $('#homePrevMonth'),
     homeNextMonth: $('#homeNextMonth'),
+    homeSearch: $('#homeSearch'),
+    homeSearchBtn: $('#homeSearchBtn'),
+    entriesSearch: $('#entriesSearch'),
+    entriesType: $('#entriesType'),
+    entriesRange: $('#entriesRange'),
+    entriesFromWrap: $('#entriesFromWrap'),
+    entriesToWrap: $('#entriesToWrap'),
+    entriesFrom: $('#entriesFrom'),
+    entriesTo: $('#entriesTo'),
+    resetEntriesFiltersBtn: $('#resetEntriesFiltersBtn'),
+    entriesIncomeTotal: $('#entriesIncomeTotal'),
+    entriesExpenseTotal: $('#entriesExpenseTotal'),
+    entriesNetTotal: $('#entriesNetTotal'),
+    entriesCount: $('#entriesCount'),
+    allEntriesList: $('#allEntriesList'),
+    notesLockBox: $('#notesLockBox'),
+    notesLockTitle: $('#notesLockTitle'),
+    notesLockText: $('#notesLockText'),
+    notesPinInput: $('#notesPinInput'),
+    notesUnlockBtn: $('#notesUnlockBtn'),
+    notesSetPinBtn: $('#notesSetPinBtn'),
+    notesPinError: $('#notesPinError'),
+    notesUnlockedArea: $('#notesUnlockedArea'),
+    notesLockBtn: $('#notesLockBtn'),
+    notesSearch: $('#notesSearch'),
+    addNoteBtn: $('#addNoteBtn'),
+    noteEditorCard: $('#noteEditorCard'),
+    noteEditorTitle: $('#noteEditorTitle'),
+    noteForm: $('#noteForm'),
+    noteId: $('#noteId'),
+    noteTitle: $('#noteTitle'),
+    noteDescription: $('#noteDescription'),
+    noteTag: $('#noteTag'),
+    clearNoteBtn: $('#clearNoteBtn'),
+    newNotesPin: $('#newNotesPin'),
+    changeNotesPinBtn: $('#changeNotesPinBtn'),
+    notesCountText: $('#notesCountText'),
+    notesList: $('#notesList'),
     calendarMonthPicker: $('#calendarMonthPicker'),
     calendarPrev: $('#calendarPrev'),
     calendarNext: $('#calendarNext'),
@@ -238,6 +279,13 @@
     necessity: 'all',
     search: ''
   };
+  let entriesFilters = {
+    range: 'thisMonth',
+    from: '',
+    to: '',
+    type: 'all',
+    search: ''
+  };
 
   init();
 
@@ -259,6 +307,8 @@
       openTab('add');
       setAddMode(btn.dataset.openAdd);
     }));
+    els.homeSearchBtn.addEventListener('click', runHomeSearch);
+    els.homeSearch.addEventListener('keydown', (event) => { if (event.key === 'Enter') runHomeSearch(); });
 
     window.addEventListener('beforeinstallprompt', (event) => {
       event.preventDefault();
@@ -301,6 +351,10 @@
       input.addEventListener('input', updateReportFiltersFromInputs);
     });
     els.resetFiltersBtn.addEventListener('click', resetReportFilters);
+    [els.entriesSearch, els.entriesType, els.entriesRange, els.entriesFrom, els.entriesTo].forEach((input) => {
+      input.addEventListener(input.tagName === 'SELECT' ? 'change' : 'input', updateEntriesFiltersFromInputs);
+    });
+    els.resetEntriesFiltersBtn.addEventListener('click', resetEntriesFilters);
     els.closeDayDetails.addEventListener('click', () => { els.dayDetails.hidden = true; });
 
     els.fatherModeToggle.addEventListener('change', () => {
@@ -320,6 +374,15 @@
     els.addRecurringDueBtn.addEventListener('click', addRecurringDueForMonth);
     els.debtForm.addEventListener('submit', saveDebt);
     els.clearDebtBtn.addEventListener('click', clearDebtForm);
+    els.notesUnlockBtn.addEventListener('click', unlockNotes);
+    els.notesSetPinBtn.addEventListener('click', setInitialNotesPin);
+    els.notesPinInput.addEventListener('keydown', (event) => { if (event.key === 'Enter') { state.settings.notesPinHash ? unlockNotes() : setInitialNotesPin(); } });
+    els.notesLockBtn.addEventListener('click', lockNotes);
+    els.notesSearch.addEventListener('input', renderNotesList);
+    els.addNoteBtn.addEventListener('click', showNewNoteEditor);
+    els.noteForm.addEventListener('submit', saveNote);
+    els.clearNoteBtn.addEventListener('click', clearNoteEditor);
+    els.changeNotesPinBtn.addEventListener('click', changeNotesPin);
 
     els.saveSyncUrlBtn.addEventListener('click', () => {
       state.settings.syncUrl = els.syncUrl.value.trim();
@@ -380,6 +443,8 @@
     renderHome();
     renderAddScreen();
     renderReports();
+    renderEntries();
+    renderNotes();
     renderCalendar();
     renderSettings();
   }
@@ -550,6 +615,324 @@
     renderPersonCards(filteredExpenses);
     renderExpenseList(filteredExpenses);
     renderDebtReports();
+  }
+
+
+  function runHomeSearch() {
+    const value = els.homeSearch.value.trim().toLowerCase();
+    entriesFilters.search = value;
+    entriesFilters.range = value ? 'all' : 'thisMonth';
+    entriesFilters.type = 'all';
+    entriesFilters.from = '';
+    entriesFilters.to = '';
+    openTab('entries');
+    renderAll();
+  }
+
+  function renderEntries() {
+    renderEntriesInputs();
+    const records = getFilteredEntries();
+    const incomeTotal = sum(records.filter((record) => record.type === 'income'), 'amount');
+    const expenseTotal = sum(records.filter((record) => record.type === 'expense'), 'amount');
+    els.entriesIncomeTotal.textContent = money(incomeTotal);
+    els.entriesExpenseTotal.textContent = money(expenseTotal);
+    els.entriesNetTotal.textContent = money(incomeTotal - expenseTotal);
+    els.entriesCount.textContent = String(records.length);
+
+    if (!records.length) {
+      els.allEntriesList.className = 'record-list empty-state';
+      els.allEntriesList.textContent = 'No entries found.';
+      return;
+    }
+    els.allEntriesList.className = 'record-list';
+    els.allEntriesList.innerHTML = records.map((record) => {
+      if (record.type === 'expense') return expenseRecordHtml(record.item);
+      if (record.type === 'income') return incomeRecordHtml(record.item);
+      return debtItemHtml(record.item, true);
+    }).join('');
+    bindExpenseActions(els.allEntriesList);
+    bindIncomeActions(els.allEntriesList);
+    bindDebtActions(els.allEntriesList);
+  }
+
+  function renderEntriesInputs() {
+    els.entriesSearch.value = entriesFilters.search || '';
+    els.entriesType.value = entriesFilters.type || 'all';
+    els.entriesRange.value = entriesFilters.range || 'thisMonth';
+    const custom = entriesFilters.range === 'custom';
+    els.entriesFromWrap.hidden = !custom;
+    els.entriesToWrap.hidden = !custom;
+    els.entriesFrom.value = entriesFilters.from || monthStart(state.settings.selectedMonth);
+    els.entriesTo.value = entriesFilters.to || monthEnd(state.settings.selectedMonth);
+  }
+
+  function getFilteredEntries() {
+    const range = getEntriesDateRange();
+    const records = [];
+    state.expenses.forEach((expense) => records.push({
+      type: 'expense',
+      date: expense.date || '',
+      amount: Number(expense.amount) || 0,
+      createdAt: expense.createdAt || '',
+      searchText: [expense.description, findPerson(expense.personId)?.name, findCategory(expense.categoryId)?.name, findAccount(expense.accountId)?.name, expense.necessity, expense.amount].join(' ').toLowerCase(),
+      item: expense
+    }));
+    state.incomes.forEach((income) => records.push({
+      type: 'income',
+      date: income.date || '',
+      amount: Number(income.amount) || 0,
+      createdAt: income.createdAt || '',
+      searchText: [income.source, income.note, findAccount(income.accountId)?.name, income.amount].join(' ').toLowerCase(),
+      item: income
+    }));
+    state.debts.forEach((debt) => records.push({
+      type: 'debt',
+      date: debt.dueDate || String(debt.createdAt || '').slice(0, 10) || '',
+      amount: Number(debt.amount) || 0,
+      createdAt: debt.createdAt || '',
+      searchText: [debt.type, debt.party, debt.note, debt.status, debt.amount].join(' ').toLowerCase(),
+      item: debt
+    }));
+    return records.filter((record) => {
+      if ((entriesFilters.type || 'all') !== 'all' && record.type !== entriesFilters.type) return false;
+      if ((entriesFilters.range || 'thisMonth') !== 'all' && !dateInRange(record.date || '0000-01-01', range.from, range.to)) return false;
+      if (entriesFilters.search && !record.searchText.includes(entriesFilters.search)) return false;
+      return true;
+    }).sort((a, b) => `${b.date}${b.createdAt}`.localeCompare(`${a.date}${a.createdAt}`));
+  }
+
+  function getEntriesDateRange() {
+    const today = new Date();
+    if (entriesFilters.range === 'all') return { from: '0000-01-01', to: '9999-12-31' };
+    if (entriesFilters.range === 'today') return { from: todayKey(), to: todayKey() };
+    if (entriesFilters.range === 'yesterday') {
+      const y = addDays(today, -1);
+      return { from: dateKey(y), to: dateKey(y) };
+    }
+    if (entriesFilters.range === 'thisWeek') {
+      const start = addDays(today, -((today.getDay() + 6) % 7));
+      const end = addDays(start, 6);
+      return { from: dateKey(start), to: dateKey(end) };
+    }
+    if (entriesFilters.range === 'custom') return { from: entriesFilters.from || monthStart(state.settings.selectedMonth), to: entriesFilters.to || monthEnd(state.settings.selectedMonth) };
+    return getMonthRange(state.settings.selectedMonth);
+  }
+
+  function incomeRecordHtml(income) {
+    const account = findAccount(income.accountId)?.name || 'Cash';
+    return `
+      <article class="record-item income-record">
+        <div class="record-head"><div><div class="record-title">${escapeHtml(income.source || 'Income')}</div><div class="muted small-text">${formatDate(income.date)} · ${escapeHtml(income.note || 'Income entry')}</div></div><div class="record-amount good-text">${money(income.amount)}</div></div>
+        <div class="record-meta"><span class="tag good">Income</span><span class="tag">${escapeHtml(account)}</span></div>
+        <div class="record-actions"><button class="mini-btn" data-edit-income="${escapeHtml(income.id)}">Edit</button><button class="mini-btn" data-delete-income="${escapeHtml(income.id)}">Delete</button></div>
+      </article>
+    `;
+  }
+
+  function bindIncomeActions(root) {
+    $$('[data-edit-income]', root).forEach((btn) => btn.addEventListener('click', () => editIncome(btn.dataset.editIncome)));
+    $$('[data-delete-income]', root).forEach((btn) => btn.addEventListener('click', () => deleteIncome(btn.dataset.deleteIncome)));
+  }
+
+  function editIncome(id) {
+    const income = state.incomes.find((item) => item.id === id);
+    if (!income) return;
+    openTab('add');
+    setAddMode('income');
+    els.incomeId.value = income.id;
+    els.incomeAmount.value = income.amount;
+    els.incomeDate.value = income.date;
+    const builtIn = ['Father Pension', 'Sohail Income', 'Other Income'];
+    if (builtIn.includes(income.source)) {
+      els.incomeSource.value = income.source;
+      els.customIncomeWrap.hidden = true;
+      els.customIncomeSource.value = '';
+    } else {
+      els.incomeSource.value = 'custom';
+      els.customIncomeWrap.hidden = false;
+      els.customIncomeSource.value = income.source || '';
+    }
+    els.incomeAccount.value = income.accountId || 'cash';
+    els.incomeNote.value = income.note || '';
+  }
+
+  function deleteIncome(id) {
+    const index = state.incomes.findIndex((item) => item.id === id);
+    if (index < 0) return;
+    const [removed] = state.incomes.splice(index, 1);
+    showUndo('Income deleted.', () => state.incomes.push(removed));
+    saveAndRender(true);
+  }
+
+  function updateEntriesFiltersFromInputs() {
+    entriesFilters = {
+      range: els.entriesRange.value,
+      from: els.entriesFrom.value,
+      to: els.entriesTo.value,
+      type: els.entriesType.value,
+      search: els.entriesSearch.value.trim().toLowerCase()
+    };
+    renderEntries();
+  }
+
+  function resetEntriesFilters() {
+    entriesFilters = { range: 'thisMonth', from: '', to: '', type: 'all', search: '' };
+    renderEntries();
+  }
+
+  function renderNotes() {
+    const hasPin = !!state.settings.notesPinHash;
+    const unlocked = isNotesUnlocked();
+    els.notesLockBox.hidden = unlocked;
+    els.notesUnlockedArea.hidden = !unlocked;
+    els.notesSetPinBtn.hidden = hasPin;
+    els.notesUnlockBtn.hidden = !hasPin;
+    els.notesLockTitle.textContent = hasPin ? 'Private notes locked' : 'Create private Notes code';
+    els.notesLockText.textContent = hasPin
+      ? 'Enter the Notes code to access private reminder cards.'
+      : 'Create a separate code for Notes. Notes are not used in income or expense calculations.';
+    els.notesPinInput.placeholder = hasPin ? 'Enter code' : 'Create code';
+    if (unlocked) renderNotesList();
+  }
+
+  function isNotesUnlocked() {
+    return !!state.settings.notesPinHash && sessionStorage.getItem('familyExpenseNotesUnlocked') === 'true';
+  }
+
+  function setInitialNotesPin() {
+    const value = els.notesPinInput.value.trim();
+    if (value.length < 4) {
+      els.notesPinError.textContent = 'Notes code should be at least 4 digits.';
+      return;
+    }
+    state.settings.notesPinHash = hashPin(value);
+    sessionStorage.setItem('familyExpenseNotesUnlocked', 'true');
+    els.notesPinInput.value = '';
+    els.notesPinError.textContent = '';
+    showToast('Notes code created.');
+    saveAndRender(true);
+  }
+
+  function unlockNotes() {
+    const value = els.notesPinInput.value.trim();
+    if (hashPin(value) !== state.settings.notesPinHash) {
+      els.notesPinError.textContent = 'Wrong Notes code.';
+      return;
+    }
+    sessionStorage.setItem('familyExpenseNotesUnlocked', 'true');
+    els.notesPinInput.value = '';
+    els.notesPinError.textContent = '';
+    renderNotes();
+  }
+
+  function lockNotes() {
+    sessionStorage.removeItem('familyExpenseNotesUnlocked');
+    clearNoteEditor();
+    renderNotes();
+    showToast('Notes locked.');
+  }
+
+  function changeNotesPin() {
+    const value = els.newNotesPin.value.trim();
+    if (value.length < 4) return showToast('Notes code should be at least 4 digits.');
+    state.settings.notesPinHash = hashPin(value);
+    sessionStorage.setItem('familyExpenseNotesUnlocked', 'true');
+    els.newNotesPin.value = '';
+    showToast('Notes code changed.');
+    saveAndRender(true);
+  }
+
+  function showNewNoteEditor() {
+    clearNoteEditor(false);
+    els.noteEditorCard.hidden = false;
+    els.noteEditorTitle.textContent = 'Add note';
+    setTimeout(() => els.noteTitle.focus(), 50);
+  }
+
+  function clearNoteEditor(hide = true) {
+    els.noteId.value = '';
+    els.noteTitle.value = '';
+    els.noteDescription.value = '';
+    els.noteTag.value = '';
+    if (hide) els.noteEditorCard.hidden = true;
+  }
+
+  function saveNote(event) {
+    event.preventDefault();
+    const title = els.noteTitle.value.trim();
+    if (!title) return showToast('Enter note title.');
+    const id = els.noteId.value || uid('note');
+    const data = {
+      id,
+      title,
+      description: els.noteDescription.value.trim(),
+      tag: els.noteTag.value.trim(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    const index = state.notes.findIndex((note) => note.id === id);
+    if (index >= 0) {
+      data.createdAt = state.notes[index].createdAt || data.createdAt;
+      state.notes[index] = data;
+      showToast('Note updated.');
+    } else {
+      state.notes.push(data);
+      showToast('Note saved.');
+    }
+    clearNoteEditor();
+    saveAndRender(true);
+  }
+
+  function editNote(id) {
+    const note = state.notes.find((item) => item.id === id);
+    if (!note) return;
+    els.noteId.value = note.id;
+    els.noteTitle.value = note.title || '';
+    els.noteDescription.value = note.description || '';
+    els.noteTag.value = note.tag || '';
+    els.noteEditorTitle.textContent = 'Edit note';
+    els.noteEditorCard.hidden = false;
+    window.scrollTo({ top: Math.max(0, els.noteEditorCard.offsetTop - 90), behavior: 'smooth' });
+  }
+
+  function deleteNote(id) {
+    const index = state.notes.findIndex((item) => item.id === id);
+    if (index < 0) return;
+    const [removed] = state.notes.splice(index, 1);
+    showUndo('Note deleted.', () => state.notes.push(removed));
+    saveAndRender(true);
+  }
+
+  function renderNotesList() {
+    if (!isNotesUnlocked()) return;
+    const search = (els.notesSearch.value || '').trim().toLowerCase();
+    const notes = [...state.notes].filter((note) => {
+      if (!search) return true;
+      return [note.title, note.description, note.tag].join(' ').toLowerCase().includes(search);
+    }).sort((a, b) => String(b.updatedAt || b.createdAt || '').localeCompare(String(a.updatedAt || a.createdAt || '')));
+    els.notesCountText.textContent = `${notes.length} note${notes.length === 1 ? '' : 's'} found`;
+    if (!notes.length) {
+      els.notesList.className = 'notes-grid empty-state';
+      els.notesList.textContent = 'No notes found.';
+      return;
+    }
+    els.notesList.className = 'notes-grid';
+    els.notesList.innerHTML = notes.map((note) => noteCardHtml(note)).join('');
+    $$('[data-edit-note]', els.notesList).forEach((btn) => btn.addEventListener('click', () => editNote(btn.dataset.editNote)));
+    $$('[data-delete-note]', els.notesList).forEach((btn) => btn.addEventListener('click', () => deleteNote(btn.dataset.deleteNote)));
+  }
+
+  function noteCardHtml(note) {
+    return `
+      <article class="note-card">
+        <div class="note-card-head">
+          <div><h3>${escapeHtml(note.title || 'Untitled note')}</h3><p>${escapeHtml(formatDateTime(note.updatedAt || note.createdAt || new Date().toISOString()))}</p></div>
+          ${note.tag ? `<span class="tag">${escapeHtml(note.tag)}</span>` : ''}
+        </div>
+        <p class="note-description">${escapeHtml(note.description || 'No description added.')}</p>
+        <div class="record-actions"><button class="mini-btn" data-edit-note="${escapeHtml(note.id)}">Edit</button><button class="mini-btn" data-delete-note="${escapeHtml(note.id)}">Delete</button></div>
+      </article>
+    `;
   }
 
   function renderBarChart(container, items) {
@@ -1320,7 +1703,7 @@
       renderSyncStatus();
       return;
     }
-    const payload = { action: 'backup', app: 'family-expense-tracker-v2', savedAt: new Date().toISOString(), data: exportStateObject() };
+    const payload = { action: 'backup', app: 'family-expense-tracker-v3', savedAt: new Date().toISOString(), data: exportStateObject() };
     try {
       state.meta.syncMessage = 'Sending backup to Google Sheet...';
       renderSyncStatus();
@@ -1399,6 +1782,7 @@
       incomes: state.incomes,
       debts: state.debts,
       recurringExpenses: state.recurringExpenses,
+      notes: state.notes,
       meta: state.meta,
       exportedAt: new Date().toISOString()
     };
@@ -1413,8 +1797,9 @@
     const rows = [];
     state.incomes.forEach((income) => rows.push({ type: 'income', date: income.date, amount: income.amount, person: '', category: '', account: findAccount(income.accountId)?.name || '', necessity: '', description: '', source: income.source || '', note: income.note || '', status: '' }));
     state.expenses.forEach((expense) => rows.push({ type: 'expense', date: expense.date, amount: expense.amount, person: findPerson(expense.personId)?.name || '', category: findCategory(expense.categoryId)?.name || '', account: findAccount(expense.accountId)?.name || '', necessity: expense.necessity || '', description: expense.description || '', source: '', note: '', status: '' }));
-    state.debts.forEach((debt) => rows.push({ type: debt.type, date: debt.dueDate || '', amount: debt.amount, person: debt.party, category: 'Pending payment', account: '', necessity: '', description: debt.note || '', source: '', note: '', status: debt.status || 'pending' }));
-    const headers = ['type', 'date', 'amount', 'person', 'category', 'account', 'necessity', 'description', 'source', 'note', 'status'];
+    state.debts.forEach((debt) => rows.push({ type: debt.type, date: debt.dueDate || '', amount: debt.amount, person: debt.party, category: 'Pending payment', account: '', necessity: '', description: debt.note || '', source: '', note: '', status: debt.status || 'pending', tag: '' }));
+    state.notes.forEach((note) => rows.push({ type: 'note', date: String(note.updatedAt || note.createdAt || '').slice(0, 10), amount: '', person: '', category: 'Private note', account: '', necessity: '', description: note.description || '', source: '', note: note.title || '', status: '', tag: note.tag || '' }));
+    const headers = ['type', 'date', 'amount', 'person', 'category', 'account', 'necessity', 'description', 'source', 'note', 'status', 'tag'];
     const csv = [headers.join(','), ...rows.sort((a, b) => String(b.date).localeCompare(String(a.date))).map((row) => headers.map((key) => csvCell(row[key])).join(','))].join('\n');
     downloadFile(`family-expense-records-${todayKey()}.csv`, csv, 'text/csv');
     showToast('CSV exported.');
@@ -1525,7 +1910,7 @@
 
   function loadState() {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(OLD_STORAGE_KEY);
+      const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(OLD_STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
       if (!raw) return initialState();
       return mergeState(JSON.parse(raw));
     } catch (error) {
@@ -1543,7 +1928,7 @@
     const merged = {
       ...base,
       ...imported,
-      version: 2,
+      version: 3,
       settings: {
         ...base.settings,
         ...(imported.settings || {}),
@@ -1559,6 +1944,7 @@
       incomes: imported.incomes || [],
       debts: imported.debts || [],
       recurringExpenses: imported.recurringExpenses || [],
+      notes: imported.notes || [],
       meta: { ...base.meta, ...(imported.meta || {}) }
     };
     return merged;
@@ -1574,6 +1960,7 @@
     state.settings = state.settings || initialState().settings;
     state.settings.selectedMonth = state.settings.selectedMonth || monthKey(new Date());
     state.settings.budget = { ...initialState().settings.budget, ...(state.settings.budget || {}) };
+    state.settings.notesPinHash = state.settings.notesPinHash || '';
     state.people = state.people || [];
     state.categories = state.categories || [];
     state.accounts = state.accounts || [];
@@ -1627,6 +2014,15 @@
       updatedAt: item.updatedAt || item.createdAt || new Date().toISOString()
     }));
   }
+
+    state.notes = (state.notes || []).map((note) => ({
+      id: note.id || uid('note'),
+      title: note.title || '',
+      description: note.description || '',
+      tag: note.tag || '',
+      createdAt: note.createdAt || new Date().toISOString(),
+      updatedAt: note.updatedAt || note.createdAt || new Date().toISOString()
+    }));
 
   function seedDefaultsIfEmpty() {
     state.people = mergeById(defaultPeople, state.people);

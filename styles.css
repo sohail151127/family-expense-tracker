@@ -408,3 +408,28 @@ body.father-mode .bottom-nav { grid-template-columns: repeat(4, 1fr); }
   .top-actions { max-width: 42%; }
   .nav-btn span { font-size: 16px; }
 }
+
+/* v3 notes + entries polish */
+.search-card { margin-top: 12px; }
+.search-row { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: end; }
+.good-text { color: var(--brand); }
+.income-record { border-color: rgba(15,118,110,0.22); }
+.notes-lock-card { min-height: 260px; display: grid; align-content: center; }
+.pin-input-small { text-align: center; font-size: 20px; letter-spacing: 0.10em; }
+.note-editor-card { border-color: rgba(15,118,110,0.25); box-shadow: 0 18px 55px rgba(15,118,110,0.08); }
+.notes-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.note-card { padding: 16px; border: 1px solid var(--line); border-radius: 22px; background: linear-gradient(180deg, #fff, var(--surface-soft)); box-shadow: 0 12px 34px rgba(18,38,32,0.08); }
+.note-card-head { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; margin-bottom: 12px; }
+.note-card h3 { margin: 0 0 4px; font-size: 18px; letter-spacing: -0.03em; }
+.note-card p { margin: 0; color: var(--muted); }
+.note-description { white-space: pre-wrap; color: var(--text) !important; line-height: 1.5; margin: 10px 0 14px !important; }
+.bottom-nav { display: flex; grid-template-columns: none; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.bottom-nav::-webkit-scrollbar { display: none; }
+.nav-btn { flex: 1 0 74px; min-width: 68px; }
+body.father-mode .bottom-nav { grid-template-columns: none; }
+@media (max-width: 620px) {
+  .search-row { grid-template-columns: 1fr; }
+  .notes-grid { grid-template-columns: 1fr; }
+  .bottom-nav { justify-content: flex-start; }
+  .nav-btn { flex-basis: 66px; }
+}

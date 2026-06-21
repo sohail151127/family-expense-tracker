@@ -1,4 +1,4 @@
-const CACHE_NAME = 'family-expense-tracker-v2-premium-20260621';
+const CACHE_NAME = 'family-expense-tracker-v3-notes-entries-20260621';
 const ASSETS = [
   './',
   './index.html',
