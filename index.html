@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="description" content="A private family expense tracker with local storage, Google Sheets sync, calendar view, filters, import and export." />
+  <title>Family Expense Tracker</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <noscript>This app needs JavaScript enabled to run.</noscript>
+
+  <div class="app-shell">
+    <header class="hero">
+      <div class="hero__top">
+        <div>
+          <p class="eyebrow">Family Budget</p>
+          <h1>Expense Tracker</h1>
+        </div>
+        <button class="icon-button" id="installBtn" hidden type="button" aria-label="Install app">
+          <span>Install</span>
+        </button>
+      </div>
+
+      <div class="month-control" aria-label="Month selector">
+        <button type="button" class="ghost-button" id="prevMonthBtn" aria-label="Previous month">‹</button>
+        <label class="month-label">
+          <span>Selected month</span>
+          <input id="monthPicker" type="month" />
+        </label>
+        <button type="button" class="ghost-button" id="nextMonthBtn" aria-label="Next month">›</button>
+      </div>
+    </header>
+
+    <section class="sticky-summary" aria-label="Monthly summary">
+      <div class="summary-card summary-card--main">
+        <span>Total Money</span>
+        <strong id="totalIncomeText">Rs 0</strong>
+      </div>
+      <div class="summary-card">
+        <span>Spent</span>
+        <strong id="totalExpenseText">Rs 0</strong>
+      </div>
+      <div class="summary-card">
+        <span>Remaining</span>
+        <strong id="remainingText">Rs 0</strong>
+      </div>
+      <div class="summary-progress" aria-label="Budget progress">
+        <span id="progressBar"></span>
+      </div>
+      <p id="balanceHint" class="balance-hint">Add income and expenses to see the monthly picture.</p>
+    </section>
+
+    <main>
+      <section class="quick-actions" aria-label="Quick actions">
+        <button type="button" class="primary-action" data-open-panel="expensePanel">+ Add Expense</button>
+        <button type="button" class="secondary-action" data-open-panel="incomePanel">+ Add Income</button>
+      </section>
+
+      <section class="tabs" aria-label="App sections">
+        <button type="button" class="tab is-active" data-tab="dashboard">Dashboard</button>
+        <button type="button" class="tab" data-tab="calendar">Calendar</button>
+        <button type="button" class="tab" data-tab="people">People</button>
+        <button type="button" class="tab" data-tab="backup">Backup</button>
+      </section>
+
+      <section class="panel-grid tab-panel is-active" id="dashboardPanel">
+        <article class="card stats-card">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">This Month</p>
+              <h2>Money Overview</h2>
+            </div>
+          </div>
+          <div class="stats-grid">
+            <div>
+              <span>Necessary</span>
+              <strong id="necessaryText">Rs 0</strong>
+            </div>
+            <div>
+              <span>Unnecessary</span>
+              <strong id="unnecessaryText">Rs 0</strong>
+            </div>
+            <div>
+              <span>Transactions</span>
+              <strong id="transactionCountText">0</strong>
+            </div>
+            <div>
+              <span>Average / day</span>
+              <strong id="dailyAverageText">Rs 0</strong>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Filters</p>
+              <h2>Find Expenses</h2>
+            </div>
+            <button type="button" class="text-button" id="resetFiltersBtn">Reset</button>
+          </div>
+
+          <div class="filter-pills" role="group" aria-label="Quick date filters">
+            <button type="button" class="pill is-active" data-range="thisMonth">This Month</button>
+            <button type="button" class="pill" data-range="today">Today</button>
+            <button type="button" class="pill" data-range="yesterday">Yesterday</button>
+            <button type="button" class="pill" data-range="thisWeek">This Week</button>
+            <button type="button" class="pill" data-range="custom">Custom</button>
+          </div>
+
+          <div class="form-grid custom-range" id="customRangeBox" hidden>
+            <label>
+              <span>From</span>
+              <input id="filterFrom" type="date" />
+            </label>
+            <label>
+              <span>To</span>
+              <input id="filterTo" type="date" />
+            </label>
+          </div>
+
+          <div class="form-grid">
+            <label>
+              <span>Person</span>
+              <select id="filterPerson"></select>
+            </label>
+            <label>
+              <span>Necessary?</span>
+              <select id="filterNecessity">
+                <option value="all">All</option>
+                <option value="necessary">Necessary</option>
+                <option value="unnecessary">Unnecessary</option>
+              </select>
+            </label>
+            <label>
+              <span>Category</span>
+              <select id="filterCategory"></select>
+            </label>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Records</p>
+              <h2>Expenses</h2>
+            </div>
+            <span class="soft-badge" id="filteredTotalText">Rs 0</span>
+          </div>
+          <div class="entry-list" id="expenseList"></div>
+        </article>
+
+        <article class="card">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Sources</p>
+              <h2>Income</h2>
+            </div>
+          </div>
+          <div class="entry-list" id="incomeList"></div>
+        </article>
+      </section>
+
+      <section class="tab-panel" id="calendarPanel">
+        <article class="card">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Calendar</p>
+              <h2>Daily Spending</h2>
+            </div>
+            <span class="soft-badge" id="calendarMonthText">Month</span>
+          </div>
+          <div class="weekday-grid" aria-hidden="true">
+            <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+          </div>
+          <div class="calendar-grid" id="calendarGrid"></div>
+        </article>
+        <article class="card" id="dayDetailsCard" hidden>
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Selected Day</p>
+              <h2 id="dayDetailsTitle">Date</h2>
+            </div>
+            <button type="button" class="text-button" id="closeDayDetailsBtn">Close</button>
+          </div>
+          <div class="entry-list" id="dayDetailsList"></div>
+        </article>
+      </section>
+
+      <section class="tab-panel" id="peoplePanel">
+        <article class="card">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Family</p>
+              <h2>Manage People</h2>
+            </div>
+          </div>
+          <form id="personForm" class="inline-form">
+            <label>
+              <span>Person name</span>
+              <input id="personName" type="text" placeholder="Example: Uncle" autocomplete="off" />
+            </label>
+            <button type="submit" class="secondary-action">Add</button>
+          </form>
+          <div class="chip-list" id="peopleList"></div>
+        </article>
+
+        <article class="card">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Categories</p>
+              <h2>Manage Categories</h2>
+            </div>
+          </div>
+          <form id="categoryForm" class="inline-form">
+            <label>
+              <span>Category name</span>
+              <input id="categoryName" type="text" placeholder="Example: Rent" autocomplete="off" />
+            </label>
+            <button type="submit" class="secondary-action">Add</button>
+          </form>
+          <div class="chip-list" id="categoryList"></div>
+        </article>
+      </section>
+
+      <section class="tab-panel" id="backupPanel">
+        <article class="card sync-card">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Backup</p>
+              <h2>Google Sheet Sync</h2>
+            </div>
+            <span class="sync-dot" id="syncDot" title="Sync status"></span>
+          </div>
+          <p class="helper-text">Paste the Google Apps Script web app URL here. The app keeps local data first, then sends a backup to Google Sheet when online.</p>
+          <label>
+            <span>Apps Script Web App URL</span>
+            <input id="syncUrl" type="url" placeholder="https://script.google.com/macros/s/.../exec" />
+          </label>
+          <div class="button-row">
+            <button type="button" class="secondary-action" id="saveSyncUrlBtn">Save URL</button>
+            <button type="button" class="secondary-action" id="syncNowBtn">Sync Now</button>
+            <button type="button" class="secondary-action" id="importSheetBtn">Import Sheet</button>
+          </div>
+          <p class="sync-status" id="syncStatusText">Local storage ready.</p>
+        </article>
+
+        <article class="card">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Files</p>
+              <h2>Export / Import</h2>
+            </div>
+          </div>
+          <div class="button-row">
+            <button type="button" class="secondary-action" id="exportJsonBtn">Export JSON</button>
+            <button type="button" class="secondary-action" id="exportCsvBtn">Export CSV</button>
+            <label class="file-button">
+              Import Backup
+              <input id="importFile" type="file" accept="application/json,.json" />
+            </label>
+          </div>
+          <p class="helper-text">JSON backup can restore full app data. CSV is for viewing expenses/income in Excel or Google Sheets.</p>
+        </article>
+
+        <article class="card danger-zone">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Safety</p>
+              <h2>Reset Local Data</h2>
+            </div>
+          </div>
+          <p class="helper-text">Before reset, export a backup. Reset only clears this phone/browser data.</p>
+          <button type="button" class="danger-button" id="resetDataBtn">Reset Local Data</button>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <div class="drawer" id="expensePanel" aria-hidden="true">
+    <div class="drawer__overlay" data-close-panel></div>
+    <section class="drawer__sheet" role="dialog" aria-modal="true" aria-labelledby="expenseFormTitle">
+      <div class="drawer__handle"></div>
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">New Record</p>
+          <h2 id="expenseFormTitle">Add Expense</h2>
+        </div>
+        <button type="button" class="icon-close" data-close-panel aria-label="Close">×</button>
+      </div>
+      <form id="expenseForm" class="stacked-form">
+        <input type="hidden" id="expenseId" />
+        <label>
+          <span>Amount</span>
+          <input id="expenseAmount" type="text" inputmode="decimal" placeholder="Example: 1500" required />
+        </label>
+        <label>
+          <span>Date</span>
+          <input id="expenseDate" type="date" required />
+        </label>
+        <label>
+          <span>Spent on</span>
+          <select id="expensePerson" required></select>
+        </label>
+        <label>
+          <span>Category</span>
+          <select id="expenseCategory" required></select>
+        </label>
+        <fieldset class="segmented-field">
+          <legend>Was it necessary?</legend>
+          <label>
+            <input type="radio" name="necessity" value="necessary" checked />
+            <span>Necessary</span>
+          </label>
+          <label>
+            <input type="radio" name="necessity" value="unnecessary" />
+            <span>Unnecessary</span>
+          </label>
+        </fieldset>
+        <label>
+          <span>Description</span>
+          <textarea id="expenseDescription" rows="3" placeholder="Example: Medicine, groceries, bill, etc."></textarea>
+        </label>
+        <div class="button-row button-row--sticky">
+          <button type="button" class="ghost-button" id="clearExpenseBtn">Clear</button>
+          <button type="submit" class="primary-action">Save Expense</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <div class="drawer" id="incomePanel" aria-hidden="true">
+    <div class="drawer__overlay" data-close-panel></div>
+    <section class="drawer__sheet" role="dialog" aria-modal="true" aria-labelledby="incomeFormTitle">
+      <div class="drawer__handle"></div>
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Money In</p>
+          <h2 id="incomeFormTitle">Add Income</h2>
+        </div>
+        <button type="button" class="icon-close" data-close-panel aria-label="Close">×</button>
+      </div>
+      <form id="incomeForm" class="stacked-form">
+        <input type="hidden" id="incomeId" />
+        <label>
+          <span>Amount</span>
+          <input id="incomeAmount" type="text" inputmode="decimal" placeholder="Example: 50000" required />
+        </label>
+        <label>
+          <span>Date</span>
+          <input id="incomeDate" type="date" required />
+        </label>
+        <label>
+          <span>Source</span>
+          <select id="incomeSourceSelect">
+            <option value="Father Pension">Father Pension</option>
+            <option value="Sohail Income">Sohail Income</option>
+            <option value="Other">Other</option>
+          </select>
+        </label>
+        <label id="customIncomeSourceWrap" hidden>
+          <span>Custom source</span>
+          <input id="incomeSourceCustom" type="text" placeholder="Example: Rent, Bonus" />
+        </label>
+        <label>
+          <span>Note</span>
+          <textarea id="incomeNote" rows="3" placeholder="Optional note"></textarea>
+        </label>
+        <div class="button-row button-row--sticky">
+          <button type="button" class="ghost-button" id="clearIncomeBtn">Clear</button>
+          <button type="submit" class="primary-action">Save Income</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="app.js" defer></script>
+</body>
+</html>
