@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#13261f" />
-  <title>Family Expense Tracker V4.1 Offline</title>
+  <title>Family Expense Tracker V4.2 Analytics</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="stylesheet" href="styles.css" />
 </head>
@@ -122,14 +122,21 @@
       </section>
 
       <section class="view" id="view-reports">
-        <div class="panel"><h2>Reports</h2><p class="muted">Analyze spending by people, categories, accounts, and trends for the selected month.</p></div>
+        <div class="panel analytics-hero"><div><h2>Analytics & Reports</h2><p class="muted">Premium monthly reporting for income, expenses, savings, people, categories, daily trends, and top spending patterns.</p></div><button id="exportMonthlyReportBtn" class="btn primary tiny">Export monthly report</button></div>
+        <div id="analyticsSummary" class="analytics-summary"></div>
         <div class="report-grid">
+          <section class="panel"><h3>Income vs Expense</h3><p class="muted">Compares total monthly income with total monthly spending.</p><canvas id="incomeExpenseChart" height="190"></canvas></section>
+          <section class="panel"><h3>Savings progress</h3><p class="muted">Shows current expected savings against your target.</p><canvas id="savingsChart" height="190"></canvas></section>
           <section class="panel"><h3>Person-wise spending</h3><p class="muted">Shows how much was spent for each family member.</p><div id="personReport" class="rank-list"></div></section>
           <section class="panel"><h3>Category-wise spending</h3><p class="muted">Shows where money is going by category.</p><div id="categoryReport" class="rank-list"></div></section>
           <section class="panel"><h3>Necessary vs unnecessary</h3><p class="muted">Helps compare important spending with avoidable spending.</p><canvas id="necessaryChart" height="180"></canvas></section>
           <section class="panel"><h3>Daily spending trend</h3><p class="muted">Shows how daily spending moves across the month.</p><canvas id="dailyChart" height="180"></canvas></section>
+          <section class="panel"><h3>Weekly spending</h3><p class="muted">Groups the month into week buckets so you can see heavy weeks.</p><canvas id="weeklyChart" height="180"></canvas></section>
+          <section class="panel"><h3>This month vs last month</h3><p class="muted">Compares income, expenses, and savings with the previous month.</p><canvas id="monthCompareChart" height="190"></canvas></section>
           <section class="panel"><h3>Income sources</h3><p class="muted">Shows income received from each source.</p><div id="incomeReport" class="rank-list"></div></section>
           <section class="panel"><h3>Account balances</h3><p class="muted">Shows balance by cash, bank, or mobile wallet.</p><div id="accountReport" class="rank-list"></div></section>
+          <section class="panel"><h3>Top 10 biggest expenses</h3><p class="muted">Largest expense entries in the selected month.</p><div id="topExpensesReport" class="rank-list"></div></section>
+          <section class="panel"><h3>Top spending days</h3><p class="muted">Days with the highest total spending.</p><div id="topDaysReport" class="rank-list"></div></section>
         </div>
       </section>
 
@@ -161,8 +168,8 @@
         <section class="panel"><h3>Categories</h3><p class="muted">Use categories to group spending like medicine, grocery, bills, or school.</p><div id="settingsCategoryList" class="settings-list"></div><div class="inline-add"><input id="settingsCategoryInput" placeholder="New category name" /><button id="settingsAddCategory" class="btn tiny">+ Add</button></div></section>
         <section class="panel"><h3>Accounts</h3><p class="muted">Accounts track where money is stored or spent from, such as cash or bank.</p><div id="settingsAccountList" class="settings-list"></div><div class="inline-add"><input id="settingsAccountInput" placeholder="New account name" /><button id="settingsAddAccount" class="btn tiny">+ Add</button></div></section>
         <section class="panel"><h3>Offline & sync engine</h3><p class="muted">This app now saves to this device first, then mirrors the same data to the offline database. If the internet is not available, keep adding entries normally. When internet comes back, pending changes can be pushed to Google Sheets.</p><div id="offlinePanel" class="offline-panel"></div></section>
-        <section class="panel"><h3>Google Sheet sync</h3><p class="muted">Use this connection as your cloud backup. Sync now uploads local/offline changes to Google Sheets. Import Sheet pulls the Sheet copy back onto this device, so only use Import when you want Sheet data to replace local data.</p><input id="syncUrl" placeholder="Paste Google Apps Script Web App URL" /><div class="form-actions"><button id="saveSyncUrlBtn" class="btn primary full">Save URL</button><button id="syncNowBtn" class="btn soft full">Sync now</button><button id="importSheetBtn" class="btn soft full">Import Sheet</button></div><p id="syncMessage" class="muted"></p></section>
-        <section class="panel"><h3>Backup & restore</h3><p class="muted">Export before major updates. Import replaces the local app data with the selected backup file.</p><div class="form-actions"><button id="exportJsonBtn" class="btn soft full">Export JSON</button><button id="exportCsvBtn" class="btn soft full">Export CSV</button><label class="btn soft full file-btn">Import backup<input id="importFile" type="file" accept="application/json" /></label><button id="resetBtn" class="btn danger full">Reset local data</button></div></section>
+        <section class="panel"><h3>Google Sheet sync</h3><p class="muted">Use this connection as your cloud backup. Each button below explains exactly what it does so data does not get overwritten by mistake.</p><input id="syncUrl" placeholder="Paste Google Apps Script Web App URL" /><div class="form-actions"><button id="saveSyncUrlBtn" class="btn primary full"><strong>Save Google Sheet URL</strong><small>Stores the Apps Script URL on this device.</small></button><button id="syncNowBtn" class="btn soft full"><strong>Send local data to Google Sheet</strong><small>Uploads this device's latest offline data to the Sheet.</small></button><button id="importSheetBtn" class="btn soft full"><strong>Import data from Google Sheet</strong><small>Downloads Sheet data onto this device and replaces local data.</small></button></div><p id="syncMessage" class="muted"></p></section>
+        <section class="panel"><h3>Backup & restore</h3><p class="muted">Use these when updating the app or moving data manually between devices.</p><div class="form-actions"><button id="exportJsonBtn" class="btn soft full"><strong>Export full backup JSON</strong><small>Downloads everything: expenses, income, notes, people, categories, settings.</small></button><button id="exportCsvBtn" class="btn soft full"><strong>Export entries CSV</strong><small>Downloads a spreadsheet-friendly list of entries for review.</small></button><label class="btn soft full file-btn"><strong>Import backup file</strong><small>Loads a JSON backup and replaces local data on this device.</small><input id="importFile" type="file" accept="application/json" /></label><button id="resetBtn" class="btn danger full"><strong>Reset local data</strong><small>Downloads a backup first, then clears data from this device only.</small></button></div></section>
         <section class="panel"><h3>Privacy</h3><p class="muted">Optional PIN lock for the whole app and separate locked notes area.</p><div class="form-row two"><label>App PIN<input id="appPinInput" type="password" inputmode="numeric" placeholder="Leave blank to remove" /></label><label>Notes PIN<input id="notesPinSettingInput" type="password" inputmode="numeric" placeholder="Leave blank to remove" /></label></div><button id="savePinsBtn" class="btn primary full">Save PIN settings</button></section>
       </section>
     </main>

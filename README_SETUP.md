@@ -1,17 +1,54 @@
-# Family Expense Tracker — V4.1.2 Large Data Sync Fix
+# Family Expense Tracker V4.2 Analytics & Reports
 
-This patch fixes Google Sheets sync failing with: `Your input contains more than the maximum of 50000 characters in a single cell.`
+## What changed
 
-The Apps Script now stores the full AppState JSON in safe 45,000-character chunks and still writes readable tables like Expenses, Income, Notes, People, Categories, Accounts, PendingPayments, and RecurringExpenses.
+V4.2 adds a stronger reports layer on top of the working V4.1.2 large data sync fix.
 
-## Update steps
+New reporting features:
+- Analytics summary cards
+- Income vs expense chart
+- Savings progress chart
+- Weekly spending chart
+- This month vs last month comparison chart
+- Top 10 biggest expenses
+- Top spending days
+- Improved person-wise, category-wise, income source, account balance reports
+- Export monthly report CSV
+- Clearer Settings button labels explaining what each sync/backup action does
 
-1. Keep your current exported JSON backup safe.
-2. Upload/replace these files in GitHub Pages: `index.html`, `styles.css`, `app.js`, `sw.js`, `manifest.webmanifest`, `icons` folder, and `README_SETUP.md`.
-3. In Google Sheet > Extensions > Apps Script, replace the old code with the new `google-apps-script.gs`.
-4. Deploy: Deploy > Manage deployments > Edit > Version: New version > Deploy.
-5. Open the app on laptop first.
-6. Import your JSON backup if the app is empty.
-7. Click Sync.
-8. Refresh Google Sheet and confirm the Expenses tab has rows.
-9. On mobile, open the app and click Import Sheet, not Sync, after laptop to Sheet sync is confirmed.
+## Important before updating
+
+Open your current app and export a JSON backup before uploading this version.
+
+## Upload to GitHub Pages
+
+Replace these files in your existing GitHub repository:
+
+- index.html
+- styles.css
+- app.js
+- sw.js
+- manifest.webmanifest
+- icons folder
+- README_SETUP.md
+- google-apps-script.gs
+
+Then commit changes.
+
+## Apps Script
+
+This version keeps the V4.1.2 large-data chunked sync script. Replace Apps Script code with the included `google-apps-script.gs`, then deploy a new version:
+
+Deploy → Manage deployments → Edit → Version: New version → Deploy
+
+## After update
+
+1. Open the app on laptop first.
+2. Confirm data is visible.
+3. Go to Settings → Send local data to Google Sheet.
+4. Refresh Google Sheet and confirm rows are present.
+5. On mobile, use Import data from Google Sheet if mobile needs fresh data.
+
+## Cache note
+
+If mobile still shows old app, open the GitHub Pages URL in Chrome, refresh 2–3 times, wait 15 seconds, then reopen the installed PWA.
