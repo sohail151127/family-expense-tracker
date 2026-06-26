@@ -1,54 +1,53 @@
-# Family Expense Tracker V4.2 Analytics & Reports
+# Family Expense Tracker – V4.3 Smart Stability
 
-## What changed
+## What changed in V4.3
 
-V4.2 adds a stronger reports layer on top of the working V4.1.2 large data sync fix.
+- Activity Log added in Settings.
+- Better Notes: pin, favorite, archive, priority, due date, filters, sorting.
+- Monthly Archive: create a locked monthly summary for the selected month.
+- Safer Sync: clearer import warning, sync history, last remote sync tracking, activity logs for sync/import/export.
+- Calendar fixed for mobile width overflow.
+- Calendar now starts with Monday and shows Monday–Sunday headers.
+- Calendar supports horizontal scrolling on narrow screens.
+- Calendar shows dots for income, expense, and notes.
+- Settings action descriptions moved outside buttons for cleaner UI.
 
-New reporting features:
-- Analytics summary cards
-- Income vs expense chart
-- Savings progress chart
-- Weekly spending chart
-- This month vs last month comparison chart
-- Top 10 biggest expenses
-- Top spending days
-- Improved person-wise, category-wise, income source, account balance reports
-- Export monthly report CSV
-- Clearer Settings button labels explaining what each sync/backup action does
+## Update GitHub Pages
 
-## Important before updating
-
-Open your current app and export a JSON backup before uploading this version.
-
-## Upload to GitHub Pages
-
-Replace these files in your existing GitHub repository:
+Upload/replace these files in your GitHub repository root:
 
 - index.html
 - styles.css
 - app.js
 - sw.js
 - manifest.webmanifest
-- icons folder
-- README_SETUP.md
 - google-apps-script.gs
+- README_SETUP.md
+- icons folder
 
-Then commit changes.
+Commit changes.
 
-## Apps Script
+## Update Google Apps Script
 
-This version keeps the V4.1.2 large-data chunked sync script. Replace Apps Script code with the included `google-apps-script.gs`, then deploy a new version:
+1. Open your Google Sheet.
+2. Go to Extensions → Apps Script.
+3. Replace the old script with the new `google-apps-script.gs`.
+4. Deploy → Manage deployments → Edit.
+5. Select Version: New version.
+6. Click Deploy.
 
-Deploy → Manage deployments → Edit → Version: New version → Deploy
-
-## After update
+## After updating
 
 1. Open the app on laptop first.
-2. Confirm data is visible.
-3. Go to Settings → Send local data to Google Sheet.
-4. Refresh Google Sheet and confirm rows are present.
-5. On mobile, use Import data from Google Sheet if mobile needs fresh data.
+2. Export JSON backup.
+3. Refresh 2–3 times so the new service worker/cache updates.
+4. Confirm the app shows V4.3 features.
+5. Click “Send local data to Google Sheet”.
+6. Refresh Google Sheet and confirm new tabs: ActivityLog and MonthlyArchives.
+7. On mobile, open the app with internet and refresh 2–3 times. Then use “Import data from Google Sheet”.
 
-## Cache note
+## Important usage rule
 
-If mobile still shows old app, open the GitHub Pages URL in Chrome, refresh 2–3 times, wait 15 seconds, then reopen the installed PWA.
+- Use **Send local data to Google Sheet** when the current device has the latest data.
+- Use **Import data from Google Sheet** on another device to pull the latest data from Google Sheet.
+

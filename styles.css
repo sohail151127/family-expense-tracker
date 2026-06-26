@@ -10,3 +10,21 @@
 .btn.full small{display:block;font-weight:500;opacity:.74;font-size:11px}
 .file-btn input{display:none}
 @media (max-width:540px){.analytics-hero{display:block}.analytics-hero .btn{margin-top:10px}.analytics-summary{grid-template-columns:1fr}.report-grid{grid-template-columns:1fr}}
+
+/* V4.3 smart stability polish */
+.action-stack{display:grid;gap:12px;margin-top:12px}
+.action-item{background:#fbf8f1;border:1px solid var(--line);border-radius:18px;padding:12px}
+.action-item .btn.full{display:flex;align-items:center;justify-content:center;text-align:center;white-space:normal;line-height:1.2}
+.action-help{margin:8px 2px 0;color:var(--muted);font-size:12px;line-height:1.45}
+.calendar-scroll{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px}
+.calendar-weekdays,.calendar-grid{min-width:640px}
+.calendar-weekdays{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin:12px 0 6px}
+.calendar-weekdays span{background:#f2ede3;border:1px solid var(--line);border-radius:12px;padding:8px 6px;font-size:11px;font-weight:900;text-align:center;color:#6c5942}
+.cal-dots{display:flex;gap:4px;margin:5px 0 2px}.dot{width:7px;height:7px;border-radius:50%;display:inline-block}.dot.income{background:#21a267}.dot.expense{background:#c6533b}.dot.note{background:#d79a25}
+.day-summary{margin:10px 0}
+.note-card.pinned{border-color:#d3a047;background:linear-gradient(180deg,#fffaf0,#fffdf8)}
+.note-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.note-top h3{margin:0}
+.priority-high{background:#fff0ee;border-color:#ffd0ca;color:#a83322}.priority-low{background:#edf8f2;border-color:#d8ebdf;color:#236f58}.priority-normal{background:#f2ede3}
+.activity-list{display:grid;gap:8px;max-height:360px;overflow:auto}.activity-item{background:#fbf8f1;border:1px solid var(--line);border-radius:14px;padding:10px}.activity-item strong{display:block;font-size:13px}.activity-item small{display:block;color:var(--muted);margin-top:4px}
+.archive-card{background:#fbf8f1;border:1px solid var(--line);border-radius:16px;padding:12px;margin-top:8px}.archive-card strong{display:block}.archive-card small{display:block;margin-top:4px}.archive-metrics{display:grid;gap:5px;margin-top:10px}.archive-metrics span{background:#fff;border:1px solid var(--line);border-radius:999px;padding:6px 8px;font-size:12px;font-weight:800;color:#6c5942}
+@media(max-width:760px){.calendar-weekdays,.calendar-grid{min-width:560px}.calendar-weekdays span{font-size:10px;padding:7px 4px}.action-item{padding:11px}.activity-list{max-height:300px}}

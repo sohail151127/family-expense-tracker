@@ -1,4 +1,4 @@
-const CACHE_NAME = 'family-expense-v4-1-offline-engine-20260626-1';
+const CACHE_NAME = 'family-expense-v4-3-smart-stability-20260626-1';
 const APP_SHELL = [
   './',
   './index.html',
