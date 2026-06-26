@@ -3,541 +3,183 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#0f766e" />
-  <meta name="description" content="A private family expense tracker with offline storage and Google Sheets backup." />
-  <title>Family Expense Tracker</title>
+  <meta name="theme-color" content="#13261f" />
+  <title>Family Expense Tracker V4.1 Offline</title>
   <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="apple-touch-icon" href="icons/icon-192.png" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div id="lockScreen" class="lock-screen" hidden>
+  <div id="lockScreen" class="lock-screen hidden">
     <div class="lock-card">
-      <div class="brand-mark">FE</div>
+      <div class="logo-mark">FE</div>
       <h1>Family Expense Tracker</h1>
-      <p>Enter your PIN to unlock this device.</p>
-      <input id="pinInput" class="input pin-input" type="password" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="PIN" />
-      <button id="unlockBtn" class="btn btn-primary btn-block">Unlock</button>
-      <p id="pinError" class="error-text" aria-live="polite"></p>
+      <p>Enter your private PIN to open the app.</p>
+      <input id="pinInput" type="password" inputmode="numeric" placeholder="Enter PIN" />
+      <button id="unlockBtn" class="btn primary full">Unlock</button>
+      <small id="pinError" class="error-text"></small>
     </div>
   </div>
 
-  <div class="app-shell">
+  <div id="app" class="app-shell">
     <header class="topbar">
       <div>
-        <div class="eyebrow">Private family finance</div>
-        <h1 id="appTitle">Family Expense Tracker</h1>
-        <p id="monthTitle" class="muted">This month</p>
+        <p class="eyebrow">Family finance dashboard</p>
+        <h1 id="pageTitle">Dashboard</h1>
       </div>
-      <div class="top-actions">
-        <button id="installBtn" class="icon-btn" hidden title="Install app">Install</button>
-        <button id="lockNowBtn" class="icon-btn admin-only" title="Lock app" hidden>Lock</button>
-        <span id="syncPill" class="sync-pill"><span id="syncDot" class="sync-dot"></span><span id="syncText">Local</span></span>
-      </div>
+      <div class="status-pill" id="syncStatus"><span id="syncDot"></span><span id="syncText">Offline ready</span></div>
     </header>
 
-    <main class="main-content">
-      <section id="tab-home" class="tab-panel active" data-tab-panel="home">
-        <div class="month-strip card-soft">
-          <button id="homePrevMonth" class="round-btn" aria-label="Previous month">‹</button>
-          <input id="homeMonthPicker" class="month-input" type="month" />
-          <button id="homeNextMonth" class="round-btn" aria-label="Next month">›</button>
+    <main>
+      <section class="view active" id="view-home">
+        <div class="month-card hero-card">
+          <div>
+            <p class="eyebrow">Selected month</p>
+            <h2 id="monthTitle">This month</h2>
+            <p class="muted">Shows income, spending, savings, and balance for the month selected below.</p>
+          </div>
+          <input id="monthPicker" type="month" />
         </div>
 
-        <section class="hero-card">
-          <div class="hero-topline">
-            <span>Remaining balance</span>
-            <span id="monthBadge" class="pill">Current month</span>
-          </div>
-          <div id="remainingHero" class="hero-amount">Rs 0</div>
-          <div class="hero-stats">
-            <div><span>Income</span><strong id="homeIncome">Rs 0</strong></div>
-            <div><span>Spent</span><strong id="homeExpense">Rs 0</strong></div>
-            <div><span>Saving forecast</span><strong id="homeSavingForecast">Rs 0</strong></div>
-          </div>
-          <div class="progress-shell"><div id="homeProgressBar" class="progress-fill"></div></div>
-          <p id="homeBudgetHint" class="hero-hint">Add income and expenses to start tracking.</p>
-        </section>
-
-        <section id="alertStack" class="alert-stack"></section>
-
-        <section class="quick-grid">
-          <button class="quick-action" data-open-add="expense"><span>+</span>Add expense</button>
-          <button class="quick-action" data-open-add="income"><span>↗</span>Add income</button>
-          <button class="quick-action" data-open-tab="calendar"><span>□</span>Calendar</button>
-        </section>
-
-        <section class="card search-card">
-          <div class="section-title-row">
-            <div><h2>Search entries</h2><p class="muted">Find income, expenses and pending payments quickly.</p></div>
-          </div>
-          <div class="search-row">
-            <input id="homeSearch" class="input" type="search" placeholder="Search amount, person, category, note..." />
-            <button id="homeSearchBtn" class="btn btn-secondary" type="button">Search</button>
-          </div>
-        </section>
-
-        <section class="metric-grid">
-          <div class="metric-card"><span>Necessary</span><strong id="homeNecessary">Rs 0</strong><small id="homeNecessaryLimit">No limit set</small></div>
-          <div class="metric-card"><span>Unnecessary</span><strong id="homeUnnecessary">Rs 0</strong><small id="homeUnnecessaryLimit">No limit set</small></div>
-          <div class="metric-card"><span>Today spent</span><strong id="todaySpent">Rs 0</strong><small id="todaySummary">No spending today</small></div>
-          <div class="metric-card"><span>Safe daily spend</span><strong id="safeDailySpend">Rs 0</strong><small>To protect saving goal</small></div>
-        </section>
-
-        <section class="card">
-          <div class="section-title-row">
-            <div><h2>Account balances</h2><p class="muted">Cash, bank and wallet balances after entries.</p></div>
-          </div>
-          <div id="accountBalanceList" class="balance-list empty-state">No accounts yet.</div>
-        </section>
-
-        <section class="card admin-only">
-          <div class="section-title-row">
-            <div><h2>Monthly closing summary</h2><p class="muted">Quick snapshot for today and this month.</p></div>
-            <button id="exportMonthlySummaryBtn" class="btn btn-secondary">Export</button>
-          </div>
-          <div id="closingSummary" class="summary-block"></div>
-        </section>
-      </section>
-
-      <section id="tab-add" class="tab-panel" data-tab-panel="add">
-        <div class="segmented">
-          <button class="segment-btn active" data-add-mode="expense">Expense</button>
-          <button class="segment-btn" data-add-mode="income">Income</button>
+        <div class="dashboard-grid">
+          <article class="metric-card income"><span>Total income</span><strong id="metricIncome">Rs 0</strong><small>Money added from pension, Sohail income, or other sources.</small></article>
+          <article class="metric-card expense"><span>Total expense</span><strong id="metricExpense">Rs 0</strong><small>All monthly expenses recorded in the app.</small></article>
+          <article class="metric-card balance"><span>Remaining balance</span><strong id="metricBalance">Rs 0</strong><small>Income minus expenses for this selected month.</small></article>
+          <article class="metric-card"><span>Necessary spending</span><strong id="metricNecessary">Rs 0</strong><small>Important expenses such as bills, medicine, grocery, etc.</small></article>
+          <article class="metric-card"><span>Unnecessary spending</span><strong id="metricUnnecessary">Rs 0</strong><small>Flexible or avoidable expenses for the month.</small></article>
+          <article class="metric-card"><span>Saving target</span><strong id="metricSaving">Rs 0</strong><small>Current expected saving compared with your target.</small></article>
         </div>
 
-        <section id="expensePanel" class="card form-card active-panel">
-          <div class="section-title-row">
-            <div><h2>Add expense</h2><p class="muted">Enter every expense with person, category and account.</p></div>
-          </div>
-          <div id="quickCategoryBar" class="quick-category-bar"></div>
-          <form id="expenseForm" class="form-grid" autocomplete="off">
-            <input id="expenseId" type="hidden" />
-            <label>Amount
-              <input id="expenseAmount" class="input" type="number" inputmode="decimal" min="0" step="1" placeholder="0" required />
-            </label>
-            <label>Date
-              <input id="expenseDate" class="input" type="date" required />
-            </label>
-            <label>Person
-              <select id="expensePerson" class="input" required></select>
-            </label>
-            <label>Category
-              <select id="expenseCategory" class="input" required></select>
-            </label>
-            <label>Paid from
-              <select id="expenseAccount" class="input" required></select>
-            </label>
-            <label>Necessary?
-              <select id="expenseNecessity" class="input" required>
-                <option value="necessary">Necessary</option>
-                <option value="unnecessary">Unnecessary</option>
-              </select>
-            </label>
-            <label class="span-2">Description
-              <textarea id="expenseDescription" class="input" rows="3" placeholder="Example: medicine, grocery, bill..."></textarea>
-            </label>
-            <div id="duplicateWarning" class="warning-box span-2" hidden></div>
-            <div class="form-actions span-2">
-              <button class="btn btn-primary" type="submit">Save expense</button>
-              <button id="clearExpenseBtn" class="btn btn-secondary" type="button">Clear</button>
-            </div>
-          </form>
+        <div class="progress-card">
+          <div class="between"><strong>Budget progress</strong><span id="budgetPercent">0%</span></div>
+          <div class="progress"><span id="budgetBar"></span></div>
+          <p id="budgetText" class="muted">Add income and expenses to start tracking monthly budget progress.</p>
+        </div>
+
+        <div class="quick-actions">
+          <button class="btn primary" data-jump-add="expense">+ Add expense</button>
+          <button class="btn soft" data-jump-add="income">+ Add income</button>
+          <button class="btn soft" data-nav="calendar">View calendar</button>
+          <button class="btn soft" data-nav="entries">Search entries</button>
+        </div>
+
+        <section class="panel">
+          <div class="section-head"><div><h2>Smart overview</h2><p>Quick signals from your current month.</p></div></div>
+          <div id="smartWidgets" class="mini-grid"></div>
         </section>
 
-        <section id="incomePanel" class="card form-card">
-          <div class="section-title-row">
-            <div><h2>Add income</h2><p class="muted">Track pension, Sohail income and other sources.</p></div>
-          </div>
-          <form id="incomeForm" class="form-grid" autocomplete="off">
-            <input id="incomeId" type="hidden" />
-            <label>Amount
-              <input id="incomeAmount" class="input" type="number" inputmode="decimal" min="0" step="1" placeholder="0" required />
-            </label>
-            <label>Date
-              <input id="incomeDate" class="input" type="date" required />
-            </label>
-            <label>Source
-              <select id="incomeSource" class="input" required>
-                <option value="Father Pension">Father Pension</option>
-                <option value="Sohail Income">Sohail Income</option>
-                <option value="Other Income">Other Income</option>
-                <option value="custom">Custom source</option>
-              </select>
-            </label>
-            <label id="customIncomeWrap" hidden>Custom source
-              <input id="customIncomeSource" class="input" type="text" placeholder="Source name" />
-            </label>
-            <label>Deposit to
-              <select id="incomeAccount" class="input" required></select>
-            </label>
-            <label class="span-2">Note
-              <textarea id="incomeNote" class="input" rows="3" placeholder="Optional note"></textarea>
-            </label>
-            <div class="form-actions span-2">
-              <button class="btn btn-primary" type="submit">Save income</button>
-              <button id="clearIncomeBtn" class="btn btn-secondary" type="button">Clear</button>
-            </div>
-          </form>
+        <section class="panel">
+          <div class="section-head"><div><h2>Recent timeline</h2><p>Latest income and expense activity.</p></div><button class="btn tiny" data-nav="entries">View all</button></div>
+          <div id="recentTimeline" class="timeline"></div>
         </section>
       </section>
 
-      <section id="tab-entries" class="tab-panel" data-tab-panel="entries">
-        <section class="card">
-          <div class="section-title-row"><div><h2>All entries</h2><p class="muted">Search and review every income, expense and pending payment in one place.</p></div></div>
-          <div class="filter-grid">
-            <label class="span-2">Search
-              <input id="entriesSearch" class="input" type="search" placeholder="Search description, source, person, category, account, tag..." />
-            </label>
-            <label>Type
-              <select id="entriesType" class="input">
-                <option value="all">All entries</option>
-                <option value="expense">Expenses only</option>
-                <option value="income">Income only</option>
-                <option value="debt">Pending payments only</option>
-              </select>
-            </label>
-            <label>Range
-              <select id="entriesRange" class="input">
-                <option value="thisMonth">This month</option>
-                <option value="today">Today</option>
-                <option value="yesterday">Yesterday</option>
-                <option value="thisWeek">This week</option>
-                <option value="all">All time</option>
-                <option value="custom">Custom range</option>
-              </select>
-            </label>
-            <label id="entriesFromWrap" hidden>From
-              <input id="entriesFrom" class="input" type="date" />
-            </label>
-            <label id="entriesToWrap" hidden>To
-              <input id="entriesTo" class="input" type="date" />
-            </label>
+      <section class="view" id="view-add">
+        <div class="panel">
+          <h2>Quick add center</h2>
+          <p class="muted">Add expenses, income, notes, pending payments, or recurring expenses. Everything saves on this device first and syncs later when internet is available.</p>
+          <div class="segmented" id="addTypeTabs">
+            <button class="active" data-type="expense">Expense</button>
+            <button data-type="income">Income</button>
+            <button data-type="note">Note</button>
+            <button data-type="debt">Pending</button>
+            <button data-type="recurring">Recurring</button>
           </div>
-          <div class="form-actions"><button id="resetEntriesFiltersBtn" class="btn btn-secondary" type="button">Reset</button></div>
-        </section>
+        </div>
 
-        <section class="metric-grid report-metrics">
-          <div class="metric-card"><span>Income</span><strong id="entriesIncomeTotal">Rs 0</strong><small>Selected entries</small></div>
-          <div class="metric-card"><span>Expenses</span><strong id="entriesExpenseTotal">Rs 0</strong><small>Selected entries</small></div>
-          <div class="metric-card"><span>Net</span><strong id="entriesNetTotal">Rs 0</strong><small>Income minus expense</small></div>
-          <div class="metric-card"><span>Count</span><strong id="entriesCount">0</strong><small>Records found</small></div>
-        </section>
-
-        <section class="card">
-          <div class="section-title-row"><div><h2>Entries list</h2><p class="muted">Edit or delete saved records where supported.</p></div></div>
-          <div id="allEntriesList" class="record-list empty-state">No entries found.</div>
-        </section>
+        <form id="entryForm" class="panel form-card">
+          <input type="hidden" id="editingType" />
+          <input type="hidden" id="editingId" />
+          <div class="form-row two"><label>Type<select id="entryType"><option value="expense">Expense</option><option value="income">Income</option><option value="note">Note</option><option value="debt">Pending payment</option><option value="recurring">Recurring expense</option></select><small>Choose what kind of record you want to save.</small></label><label>Date<input id="entryDate" type="date" /><small>Date used in reports and calendar.</small></label></div>
+          <div class="form-row two money-fields"><label>Amount<input id="entryAmount" type="number" inputmode="decimal" min="0" step="1" placeholder="0" /><small>Use numbers only so calculations remain correct.</small></label><label>Account<select id="entryAccount"></select><small>Cash, Bank, JazzCash, Easypaisa, or your custom account.</small></label></div>
+          <label>Title<input id="entryTitle" type="text" placeholder="Example: Medicine bill" /><small>Short title shown in entries, calendar, and reports.</small></label>
+          <label>Description<textarea id="entryDescription" rows="3" placeholder="Add more details here"></textarea><small>Optional details for your memory.</small></label>
+          <div class="expense-only">
+            <div class="field-head"><strong>People</strong><small>Select one or more people this expense belongs to.</small></div>
+            <div id="peopleChips" class="chips"></div>
+            <div class="inline-add"><input id="quickPersonName" type="text" placeholder="Add new person here" /><button type="button" id="quickAddPerson" class="btn tiny">+ Person</button></div>
+            <div class="field-head"><strong>Categories</strong><small>Select one or more categories for this expense.</small></div>
+            <div id="categoryChips" class="chips"></div>
+            <div class="inline-add"><input id="quickCategoryName" type="text" placeholder="Add new category here" /><button type="button" id="quickAddCategory" class="btn tiny">+ Category</button></div>
+            <label class="toggle-line"><input id="entryNecessary" type="checkbox" checked /> <span>Necessary expense</span><small>Turn off for avoidable/flexible spending.</small></label>
+          </div>
+          <div class="income-only hidden"><label>Income source<select id="incomeSource"><option>Father Pension</option><option>Sohail Income</option><option>Other Income</option></select><small>This helps reports show where money came from.</small></label></div>
+          <div class="note-only hidden"><label>Tag<input id="noteTag" type="text" placeholder="Example: money given" /><small>Notes never affect financial calculations.</small></label></div>
+          <div class="debt-only hidden"><label>Status<select id="debtStatus"><option value="receivable">Receivable</option><option value="payable">Payable</option><option value="paid">Paid</option></select><small>Use this for money given, received, payable, or pending.</small></label></div>
+          <div class="recurring-only hidden"><label>Repeat<select id="recurringRepeat"><option value="monthly">Monthly</option><option value="weekly">Weekly</option><option value="yearly">Yearly</option></select><small>For regular bills or repeated expenses.</small></label></div>
+          <div class="form-actions"><button type="submit" class="btn primary full" id="saveEntryBtn">Save entry</button><button type="button" id="clearFormBtn" class="btn soft full">Clear form</button></div>
+        </form>
       </section>
 
-      <section id="tab-reports" class="tab-panel admin-only" data-tab-panel="reports">
-        <section class="card">
-          <div class="section-title-row"><div><h2>Reports</h2><p class="muted">Filter expenses and review spending patterns.</p></div></div>
-          <div class="filter-grid">
-            <label>Range
-              <select id="filterRange" class="input">
-                <option value="thisMonth">This month</option>
-                <option value="today">Today</option>
-                <option value="yesterday">Yesterday</option>
-                <option value="thisWeek">This week</option>
-                <option value="custom">Custom range</option>
-              </select>
-            </label>
-            <label id="filterFromWrap" hidden>From
-              <input id="filterFrom" class="input" type="date" />
-            </label>
-            <label id="filterToWrap" hidden>To
-              <input id="filterTo" class="input" type="date" />
-            </label>
-            <label>Person
-              <select id="filterPerson" class="input"></select>
-            </label>
-            <label>Category
-              <select id="filterCategory" class="input"></select>
-            </label>
-            <label>Type
-              <select id="filterNecessity" class="input">
-                <option value="all">All</option>
-                <option value="necessary">Necessary</option>
-                <option value="unnecessary">Unnecessary</option>
-              </select>
-            </label>
-            <label class="span-2">Search
-              <input id="reportSearch" class="input" type="search" placeholder="Search description, person, category..." />
-            </label>
-          </div>
-          <div class="form-actions"><button id="resetFiltersBtn" class="btn btn-secondary">Reset filters</button></div>
-        </section>
-
-        <section class="metric-grid report-metrics">
-          <div class="metric-card"><span>Filtered spent</span><strong id="filteredSpent">Rs 0</strong><small id="filteredCount">0 entries</small></div>
-          <div class="metric-card"><span>Average / day</span><strong id="filteredDailyAverage">Rs 0</strong><small>Selected range</small></div>
-          <div class="metric-card"><span>Top person</span><strong id="topPersonText">—</strong><small id="topPersonAmount">Rs 0</small></div>
-          <div class="metric-card"><span>Top category</span><strong id="topCategoryText">—</strong><small id="topCategoryAmount">Rs 0</small></div>
-        </section>
-
-        <section class="charts-grid">
-          <div class="card chart-card"><h3>Person-wise spending</h3><div id="personBarChart" class="chart-area"></div></div>
-          <div class="card chart-card"><h3>Category-wise spending</h3><div id="categoryBarChart" class="chart-area"></div></div>
-          <div class="card chart-card"><h3>Necessary vs unnecessary</h3><div id="necessityDonut" class="donut-wrap"></div></div>
-          <div class="card chart-card"><h3>Daily trend</h3><div id="dailyTrendChart" class="chart-area"></div></div>
-          <div class="card chart-card"><h3>Income sources</h3><div id="incomeSourceChart" class="chart-area"></div></div>
-          <div class="card chart-card"><h3>Account balance graph</h3><div id="accountChart" class="chart-area"></div></div>
-        </section>
-
-        <section class="card">
-          <div class="section-title-row"><div><h2>Family spending</h2><p class="muted">Tap any person to filter the list below.</p></div></div>
-          <div id="personCards" class="person-card-grid"></div>
-        </section>
-
-        <section class="card">
-          <div class="section-title-row"><div><h2>Expense entries</h2><p class="muted">Edit, delete or search saved expenses.</p></div></div>
-          <div id="expenseList" class="record-list empty-state">No expenses found.</div>
-        </section>
-
-        <section class="card">
-          <div class="section-title-row"><div><h2>Pending payments</h2><p class="muted">Payables and receivables summary.</p></div></div>
-          <div id="debtReportList" class="record-list empty-state">No pending payments.</div>
-        </section>
+      <section class="view" id="view-entries">
+        <div class="panel">
+          <div class="section-head"><div><h2>Entries timeline</h2><p>View, search, add, edit, and delete all saved records from one place.</p></div><button class="btn primary tiny" data-jump-add="expense">+ Add</button></div>
+          <input id="globalSearch" class="search-input" type="search" placeholder="Search title, description, person, category, amount..." />
+          <div class="filter-row"><select id="filterType"><option value="all">All types</option><option value="expense">Expenses</option><option value="income">Income</option><option value="note">Notes</option><option value="debt">Pending</option><option value="recurring">Recurring</option></select><select id="filterRange"><option value="month">This selected month</option><option value="today">Today</option><option value="yesterday">Yesterday</option><option value="week">This week</option><option value="all">All time</option><option value="custom">Custom range</option></select></div>
+          <div class="form-row two hidden" id="customRangeWrap"><label>From<input id="rangeFrom" type="date" /></label><label>To<input id="rangeTo" type="date" /></label></div>
+          <div class="entry-summary"><span id="entriesCount">0 entries</span><span id="entriesSum">Rs 0 net</span></div>
+        </div>
+        <div id="entriesTimeline" class="timeline"></div>
       </section>
 
-      <section id="tab-notes" class="tab-panel" data-tab-panel="notes">
-        <section id="notesLockBox" class="card notes-lock-card">
-          <div class="section-title-row">
-            <div><h2 id="notesLockTitle">Private notes</h2><p id="notesLockText" class="muted">Enter the Notes code to access private reminder cards.</p></div>
-          </div>
-          <div class="form-grid">
-            <label class="span-2">Notes code
-              <input id="notesPinInput" class="input pin-input-small" type="password" inputmode="numeric" autocomplete="off" placeholder="Enter code" />
-            </label>
-            <div class="form-actions span-2">
-              <button id="notesUnlockBtn" class="btn btn-primary" type="button">Unlock notes</button>
-              <button id="notesSetPinBtn" class="btn btn-primary" type="button">Create notes code</button>
-            </div>
-          </div>
-          <p id="notesPinError" class="error-text" aria-live="polite"></p>
-        </section>
-
-        <div id="notesUnlockedArea" hidden>
-          <section class="card">
-            <div class="section-title-row">
-              <div><h2>Notes</h2><p class="muted">Private reminder cards. These are not included in income or expense calculations.</p></div>
-              <button id="notesLockBtn" class="btn btn-secondary" type="button">Lock notes</button>
-            </div>
-            <div class="search-row">
-              <input id="notesSearch" class="input" type="search" placeholder="Search title, description or tag..." />
-              <button id="addNoteBtn" class="btn btn-primary" type="button">Add note</button>
-            </div>
-          </section>
-
-          <section id="noteEditorCard" class="card note-editor-card" hidden>
-            <div class="section-title-row"><div><h2 id="noteEditorTitle">Add note</h2><p class="muted">Save a reminder card for anything you want to remember.</p></div></div>
-            <form id="noteForm" class="form-grid" autocomplete="off">
-              <input id="noteId" type="hidden" />
-              <label class="span-2">Title
-                <input id="noteTitle" class="input" type="text" placeholder="Example: Money given to Bilal" required />
-              </label>
-              <label class="span-2">Description
-                <textarea id="noteDescription" class="input" rows="4" placeholder="Write full details here..."></textarea>
-              </label>
-              <label class="span-2">Tag
-                <input id="noteTag" class="input" type="text" placeholder="Example: Bilal, loan, reminder" />
-              </label>
-              <div class="form-actions span-2">
-                <button class="btn btn-primary" type="submit">Save note</button>
-                <button id="clearNoteBtn" class="btn btn-secondary" type="button">Cancel</button>
-              </div>
-            </form>
-          </section>
-
-          <section class="card admin-only">
-            <div class="section-title-row"><div><h2>Notes code</h2><p class="muted">Change the private Notes access code.</p></div></div>
-            <div class="search-row">
-              <input id="newNotesPin" class="input" type="password" inputmode="numeric" placeholder="New notes code" />
-              <button id="changeNotesPinBtn" class="btn btn-secondary" type="button">Change code</button>
-            </div>
-          </section>
-
-          <section class="card">
-            <div class="section-title-row"><div><h2>Saved notes</h2><p id="notesCountText" class="muted">No notes yet.</p></div></div>
-            <div id="notesList" class="notes-grid empty-state">No notes found.</div>
-          </section>
+      <section class="view" id="view-reports">
+        <div class="panel"><h2>Reports</h2><p class="muted">Analyze spending by people, categories, accounts, and trends for the selected month.</p></div>
+        <div class="report-grid">
+          <section class="panel"><h3>Person-wise spending</h3><p class="muted">Shows how much was spent for each family member.</p><div id="personReport" class="rank-list"></div></section>
+          <section class="panel"><h3>Category-wise spending</h3><p class="muted">Shows where money is going by category.</p><div id="categoryReport" class="rank-list"></div></section>
+          <section class="panel"><h3>Necessary vs unnecessary</h3><p class="muted">Helps compare important spending with avoidable spending.</p><canvas id="necessaryChart" height="180"></canvas></section>
+          <section class="panel"><h3>Daily spending trend</h3><p class="muted">Shows how daily spending moves across the month.</p><canvas id="dailyChart" height="180"></canvas></section>
+          <section class="panel"><h3>Income sources</h3><p class="muted">Shows income received from each source.</p><div id="incomeReport" class="rank-list"></div></section>
+          <section class="panel"><h3>Account balances</h3><p class="muted">Shows balance by cash, bank, or mobile wallet.</p><div id="accountReport" class="rank-list"></div></section>
         </div>
       </section>
 
-      <section id="tab-calendar" class="tab-panel" data-tab-panel="calendar">
-        <section class="card calendar-card">
-          <div class="section-title-row">
-            <div><h2>Calendar</h2><p id="calendarMonthText" class="muted">Month view</p></div>
-            <div class="small-controls"><button id="calendarPrev" class="round-btn">‹</button><input id="calendarMonthPicker" class="month-input" type="month" /><button id="calendarNext" class="round-btn">›</button></div>
-          </div>
-          <div class="week-row"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div>
-          <div id="calendarGrid" class="calendar-grid"></div>
-        </section>
-
-        <section id="dayDetails" class="card day-details" hidden>
-          <div class="section-title-row">
-            <div><h2 id="dayDetailsTitle">Day details</h2><p id="dayDetailsSummary" class="muted"></p></div>
-            <button id="closeDayDetails" class="round-btn">×</button>
-          </div>
-          <div id="dayDetailsList" class="record-list"></div>
-        </section>
+      <section class="view" id="view-calendar">
+        <div class="panel"><h2>Calendar</h2><p class="muted">Select a month and tap any date to see that day's income and expenses.</p></div>
+        <div id="calendarGrid" class="calendar-grid"></div>
+        <div id="dayDetails" class="panel"><h3>Select a date</h3><p class="muted">Day details will appear here.</p></div>
       </section>
 
-      <section id="tab-settings" class="tab-panel" data-tab-panel="settings">
-        <section class="card">
-          <div class="section-title-row"><div><h2>App mode</h2><p class="muted">Father mode keeps daily use simple. Admin mode shows reports and settings.</p></div></div>
-          <div class="setting-row"><div><strong>Father mode</strong><span>Hide detailed reports from bottom navigation.</span></div><label class="switch"><input id="fatherModeToggle" type="checkbox" /><span></span></label></div>
-        </section>
+      <section class="view" id="view-notes">
+        <div id="notesLockBox" class="panel">
+          <h2>Private Notes</h2>
+          <p class="muted">Notes are locked separately and never affect income, expense, or balance calculations.</p>
+          <input id="notesPinInput" type="password" inputmode="numeric" placeholder="Enter notes code" />
+          <button id="notesUnlockBtn" class="btn primary full">Unlock notes</button>
+          <button id="notesSetPinBtn" class="btn soft full">Set notes code</button>
+          <small id="notesError" class="error-text"></small>
+        </div>
+        <div id="notesArea" class="hidden">
+          <div class="panel"><div class="section-head"><div><h2>Notes</h2><p>Use notes for reminders, money given/received, or anything separate from calculations.</p></div><button id="addNoteCardBtn" class="btn primary tiny">+ Note</button></div><input id="notesSearch" class="search-input" type="search" placeholder="Search notes by title, description, or tag" /><button id="notesLockBtn" class="btn soft full">Lock notes</button></div>
+          <div id="notesList" class="notes-grid"></div>
+        </div>
+      </section>
 
-        <section class="card admin-only">
-          <div class="section-title-row"><div><h2>PIN lock</h2><p class="muted">Optional device-level PIN for this browser/app.</p></div></div>
-          <div class="form-grid">
-            <label>New PIN
-              <input id="newPin" class="input" type="password" inputmode="numeric" placeholder="Leave empty to remove" />
-            </label>
-            <div class="form-actions align-end"><button id="savePinBtn" class="btn btn-secondary">Save PIN</button><button id="removePinBtn" class="btn btn-ghost">Remove PIN</button></div>
-          </div>
-        </section>
-
-        <section class="card admin-only">
-          <div class="section-title-row"><div><h2>Monthly plan</h2><p class="muted">Set income, saving target and spending limits.</p></div></div>
-          <form id="budgetForm" class="form-grid">
-            <label>Expected monthly income
-              <input id="budgetIncome" class="input" type="number" inputmode="decimal" min="0" step="1" />
-            </label>
-            <label>Saving target
-              <input id="savingTarget" class="input" type="number" inputmode="decimal" min="0" step="1" />
-            </label>
-            <label>Necessary expense limit
-              <input id="necessaryLimit" class="input" type="number" inputmode="decimal" min="0" step="1" />
-            </label>
-            <label>Unnecessary expense limit
-              <input id="unnecessaryLimit" class="input" type="number" inputmode="decimal" min="0" step="1" />
-            </label>
-            <label>Low balance warning %
-              <input id="warningPercent" class="input" type="number" inputmode="numeric" min="1" max="90" step="1" />
-            </label>
-            <div class="form-actions align-end"><button class="btn btn-primary" type="submit">Save plan</button></div>
-          </form>
-        </section>
-
-        <section class="card admin-only">
-          <div class="section-title-row"><div><h2>Accounts</h2><p class="muted">Track cash, bank and wallet balances.</p></div></div>
-          <form id="accountForm" class="form-grid">
-            <input id="accountId" type="hidden" />
-            <label>Account name
-              <input id="accountName" class="input" type="text" placeholder="Cash, Bank, JazzCash..." required />
-            </label>
-            <label>Opening balance
-              <input id="accountOpening" class="input" type="number" inputmode="decimal" min="0" step="1" placeholder="0" />
-            </label>
-            <div class="form-actions align-end"><button class="btn btn-primary" type="submit">Save account</button><button id="clearAccountBtn" class="btn btn-secondary" type="button">Clear</button></div>
-          </form>
-          <div id="accountsList" class="manage-list"></div>
-        </section>
-
-        <section class="card admin-only">
-          <div class="section-title-row"><div><h2>People</h2><p class="muted">Add or disable family names.</p></div></div>
-          <form id="personForm" class="inline-form"><input id="personName" class="input" type="text" placeholder="Person name" required /><button class="btn btn-primary" type="submit">Add</button></form>
-          <div id="peopleList" class="manage-list"></div>
-        </section>
-
-        <section class="card admin-only">
-          <div class="section-title-row"><div><h2>Categories</h2><p class="muted">Add or disable expense categories.</p></div></div>
-          <form id="categoryForm" class="inline-form"><input id="categoryName" class="input" type="text" placeholder="Category name" required /><button class="btn btn-primary" type="submit">Add</button></form>
-          <div id="categoriesList" class="manage-list"></div>
-        </section>
-
-        <section class="card admin-only">
-          <div class="section-title-row"><div><h2>Recurring expenses</h2><p class="muted">Add regular bills once, then add due entries each month.</p></div></div>
-          <form id="recurringForm" class="form-grid">
-            <input id="recurringId" type="hidden" />
-            <label>Name
-              <input id="recurringName" class="input" type="text" placeholder="Electricity bill" required />
-            </label>
-            <label>Amount
-              <input id="recurringAmount" class="input" type="number" min="0" step="1" required />
-            </label>
-            <label>Day of month
-              <input id="recurringDay" class="input" type="number" min="1" max="31" step="1" value="1" required />
-            </label>
-            <label>Person
-              <select id="recurringPerson" class="input"></select>
-            </label>
-            <label>Category
-              <select id="recurringCategory" class="input"></select>
-            </label>
-            <label>Paid from
-              <select id="recurringAccount" class="input"></select>
-            </label>
-            <label>Type
-              <select id="recurringNecessity" class="input"><option value="necessary">Necessary</option><option value="unnecessary">Unnecessary</option></select>
-            </label>
-            <div class="form-actions align-end"><button class="btn btn-primary" type="submit">Save recurring</button><button id="clearRecurringBtn" class="btn btn-secondary" type="button">Clear</button></div>
-          </form>
-          <div class="form-actions"><button id="addRecurringDueBtn" class="btn btn-secondary">Add due expenses for selected month</button></div>
-          <div id="recurringList" class="manage-list"></div>
-        </section>
-
-        <section class="card admin-only">
-          <div class="section-title-row"><div><h2>Pending payments / udhaar</h2><p class="muted">Track payables and receivables separately from expenses.</p></div></div>
-          <form id="debtForm" class="form-grid">
-            <input id="debtId" type="hidden" />
-            <label>Type
-              <select id="debtType" class="input"><option value="receivable">Receivable</option><option value="payable">Payable</option></select>
-            </label>
-            <label>Person / party
-              <input id="debtParty" class="input" type="text" required />
-            </label>
-            <label>Amount
-              <input id="debtAmount" class="input" type="number" inputmode="decimal" min="0" step="1" required />
-            </label>
-            <label>Due date
-              <input id="debtDueDate" class="input" type="date" />
-            </label>
-            <label class="span-2">Note
-              <textarea id="debtNote" class="input" rows="2"></textarea>
-            </label>
-            <div class="form-actions span-2"><button class="btn btn-primary" type="submit">Save payment</button><button id="clearDebtBtn" class="btn btn-secondary" type="button">Clear</button></div>
-          </form>
-          <div id="debtList" class="manage-list"></div>
-        </section>
-
-        <section class="card admin-only">
-          <div class="section-title-row"><div><h2>Backup & sync</h2><p class="muted">Data is saved locally first, then backed up to Google Sheets.</p></div></div>
-          <label>Google Apps Script Web App URL
-            <input id="syncUrl" class="input" type="url" placeholder="Paste deployment URL" />
-          </label>
-          <div class="backup-grid">
-            <button id="saveSyncUrlBtn" class="btn btn-secondary">Save URL</button>
-            <button id="syncNowBtn" class="btn btn-primary">Sync now</button>
-            <button id="importSheetBtn" class="btn btn-secondary">Import Sheet</button>
-            <button id="exportJsonBtn" class="btn btn-secondary">Export JSON</button>
-            <button id="exportCsvBtn" class="btn btn-secondary">Export CSV</button>
-            <button id="exportMonthlyBtn" class="btn btn-secondary">Export monthly report</button>
-            <label class="btn btn-secondary file-btn">Import backup<input id="importFile" type="file" accept=".json,application/json" hidden /></label>
-            <button id="resetBtn" class="btn btn-danger">Reset local data</button>
-          </div>
-          <p id="syncStatus" class="muted small-text">Local storage ready.</p>
-        </section>
+      <section class="view" id="view-settings">
+        <div class="panel"><h2>Settings & backup</h2><p class="muted">Manage people, categories, budget, sync, local backups, PIN, and app data.</p></div>
+        <section class="panel"><h3>Budget planning</h3><p class="muted">Set monthly expectations so the dashboard can show savings progress and warnings.</p><div class="form-row two"><label>Expected income<input id="settingExpectedIncome" type="number" min="0" step="1" /></label><label>Saving target<input id="settingSavingTarget" type="number" min="0" step="1" /></label><label>Necessary limit<input id="settingNecessaryLimit" type="number" min="0" step="1" /></label><label>Unnecessary limit<input id="settingUnnecessaryLimit" type="number" min="0" step="1" /></label></div><button id="saveBudgetBtn" class="btn primary full">Save budget</button></section>
+        <section class="panel"><h3>People</h3><p class="muted">These appear on the add expense screen. You can also quick-add people from the Add tab.</p><div id="settingsPeopleList" class="settings-list"></div><div class="inline-add"><input id="settingsPersonInput" placeholder="New person name" /><button id="settingsAddPerson" class="btn tiny">+ Add</button></div></section>
+        <section class="panel"><h3>Categories</h3><p class="muted">Use categories to group spending like medicine, grocery, bills, or school.</p><div id="settingsCategoryList" class="settings-list"></div><div class="inline-add"><input id="settingsCategoryInput" placeholder="New category name" /><button id="settingsAddCategory" class="btn tiny">+ Add</button></div></section>
+        <section class="panel"><h3>Accounts</h3><p class="muted">Accounts track where money is stored or spent from, such as cash or bank.</p><div id="settingsAccountList" class="settings-list"></div><div class="inline-add"><input id="settingsAccountInput" placeholder="New account name" /><button id="settingsAddAccount" class="btn tiny">+ Add</button></div></section>
+        <section class="panel"><h3>Offline & sync engine</h3><p class="muted">This app now saves to this device first, then mirrors the same data to the offline database. If the internet is not available, keep adding entries normally. When internet comes back, pending changes can be pushed to Google Sheets.</p><div id="offlinePanel" class="offline-panel"></div></section>
+        <section class="panel"><h3>Google Sheet sync</h3><p class="muted">Use this connection as your cloud backup. Sync now uploads local/offline changes to Google Sheets. Import Sheet pulls the Sheet copy back onto this device, so only use Import when you want Sheet data to replace local data.</p><input id="syncUrl" placeholder="Paste Google Apps Script Web App URL" /><div class="form-actions"><button id="saveSyncUrlBtn" class="btn primary full">Save URL</button><button id="syncNowBtn" class="btn soft full">Sync now</button><button id="importSheetBtn" class="btn soft full">Import Sheet</button></div><p id="syncMessage" class="muted"></p></section>
+        <section class="panel"><h3>Backup & restore</h3><p class="muted">Export before major updates. Import replaces the local app data with the selected backup file.</p><div class="form-actions"><button id="exportJsonBtn" class="btn soft full">Export JSON</button><button id="exportCsvBtn" class="btn soft full">Export CSV</button><label class="btn soft full file-btn">Import backup<input id="importFile" type="file" accept="application/json" /></label><button id="resetBtn" class="btn danger full">Reset local data</button></div></section>
+        <section class="panel"><h3>Privacy</h3><p class="muted">Optional PIN lock for the whole app and separate locked notes area.</p><div class="form-row two"><label>App PIN<input id="appPinInput" type="password" inputmode="numeric" placeholder="Leave blank to remove" /></label><label>Notes PIN<input id="notesPinSettingInput" type="password" inputmode="numeric" placeholder="Leave blank to remove" /></label></div><button id="savePinsBtn" class="btn primary full">Save PIN settings</button></section>
       </section>
     </main>
 
-    <nav class="bottom-nav" aria-label="Main navigation">
-      <button class="nav-btn active" data-tab="home"><span>⌂</span>Home</button>
-      <button class="nav-btn" data-tab="add"><span>＋</span>Add</button>
-      <button class="nav-btn" data-tab="entries"><span>≡</span>Entries</button>
-      <button class="nav-btn admin-nav" data-tab="reports"><span>◔</span>Reports</button>
-      <button class="nav-btn" data-tab="notes"><span>✎</span>Notes</button>
-      <button class="nav-btn" data-tab="calendar"><span>▦</span>Calendar</button>
-      <button class="nav-btn" data-tab="settings"><span>⚙</span>Settings</button>
+    <nav class="bottom-nav">
+      <button class="active" data-nav="home"><span>⌂</span>Home</button>
+      <button data-nav="entries"><span>☷</span>Entries</button>
+      <button data-nav="add"><span>＋</span>Add</button>
+      <button data-nav="reports"><span>◴</span>Reports</button>
+      <button data-nav="calendar"><span>□</span>Calendar</button>
+      <button data-nav="notes"><span>✎</span>Notes</button>
+      <button data-nav="settings"><span>⚙</span>Settings</button>
     </nav>
   </div>
 
-  <div id="toast" class="toast" hidden></div>
-  <div id="undoBar" class="undo-bar" hidden><span id="undoText">Deleted.</span><button id="undoBtn">Undo</button></div>
-
-  <script src="app.js" defer></script>
+  <div id="toast" class="toast hidden"></div>
+  <div id="undoBar" class="undo-bar hidden"><span id="undoText"></span><button id="undoBtn">Undo</button></div>
+  <script src="app.js"></script>
 </body>
 </html>

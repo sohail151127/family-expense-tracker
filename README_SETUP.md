@@ -1,84 +1,79 @@
-# Family Expense Tracker v3 Premium
+# Family Expense Tracker V4.1 – Offline Engine
 
-Mobile-first PWA for family finance, reports, calendar tracking, private notes, and Google Sheets backup.
+This update focuses on reliability when there is no internet.
 
-## What is new in v3
+## What changed in V4.1
 
-- New **Entries** tab for all income, expenses and pending payments in one place
-- Search bar for the main app entries
-- New locked **Notes** tab
-- Notes are fully separate from income/expense calculations
-- Notes have title, description and tag
-- Notes can be searched, edited and deleted
-- Separate Notes access code/PIN
-- Existing v2 features remain: Home, Add, Reports, Calendar, Settings, graphs, budgets, accounts, recurring expenses, pending payments, import/export and Google Sheet sync
+- Stronger offline mode using an improved Service Worker.
+- App shell is cached so the app can open without internet after it has been opened once online.
+- Local data is still saved immediately and is also mirrored into IndexedDB for stronger offline storage.
+- Sync queue/status is shown in the top status pill and in Settings.
+- Automatic sync attempt when internet returns.
+- Google Sheet remains the cloud backup, not the first place data is saved.
+- Better Offline & Sync panel in Settings with connection, pending changes, local data size, last sync, and Google status.
 
-## Update on GitHub Pages
+## Very important first-use rule
 
-1. Extract this ZIP.
-2. Open your GitHub repository: `family-expense-tracker`.
-3. Click **Add file > Upload files**.
-4. Upload/replace these files and folders from this package:
-   - `index.html`
-   - `styles.css`
-   - `app.js`
-   - `manifest.webmanifest`
-   - `sw.js`
-   - `icons` folder
-   - `README_SETUP.md`
-   - `google-apps-script.gs` can be uploaded too, but it is mainly for Apps Script.
-5. Click **Commit changes**.
-6. Open your live link after 1–2 minutes.
-7. If old version shows on mobile, refresh Chrome, close/reopen the PWA, or clear site cache for the app.
+After uploading this version, open the app once with internet on the mobile where it will be used. Wait 10–20 seconds. This lets Chrome install/update the Service Worker and cache the app files.
 
-## Update Google Sheets sync
+After that, the app should open offline from the home screen/PWA icon.
 
-Because v3 adds Notes, update Apps Script too.
+## GitHub update steps
 
-1. Open your existing Google Sheet.
-2. Go to **Extensions > Apps Script**.
-3. Replace the old code with the full code from `google-apps-script.gs`.
-4. Click Save.
-5. Go to **Deploy > Manage deployments**.
-6. Edit the existing web app deployment.
-7. Version: **New version**.
-8. Click **Deploy**.
-9. Keep the same Web App URL in the app, unless Google gives you a new one.
-10. In the app, go to **Settings > Backup & sync** and click **Sync now**.
+Upload/replace these files in your GitHub repository root:
 
-After sync, Google Sheet should have these tabs:
+- index.html
+- styles.css
+- app.js
+- sw.js
+- manifest.webmanifest
+- icons folder
+- README_SETUP.md
+- google-apps-script.gs
 
-- AppState
-- People
-- Categories
-- Accounts
-- Expenses
-- Income
-- PendingPayments
-- RecurringExpenses
-- Notes
+Then commit changes.
 
-## Safe use with two mobiles
+## Apps Script update steps
 
-Best flow when using both father mobile and your mobile:
+1. Open your Google Sheet.
+2. Go to Extensions → Apps Script.
+3. Replace old code with `google-apps-script.gs` from this folder.
+4. Deploy → Manage deployments → Edit.
+5. Select New version.
+6. Deploy.
 
-1. Before adding data on a device, click **Import Sheet**.
-2. Add income/expense/notes.
-3. Click **Sync now**.
+Your existing Web App URL should normally stay the same.
 
-This prevents one phone from overwriting newer data from the other phone.
+## After upload on mobile
 
-## Notes lock
+1. Open the GitHub Pages app URL in Chrome while internet is available.
+2. Refresh 2–3 times.
+3. Open Settings → Offline & Sync Engine.
+4. Confirm Offline database says Ready.
+5. Close Chrome.
+6. Turn off internet and open the installed app icon.
 
-Open the Notes tab for the first time and create a Notes code. After that, Notes will require that code in the current browser session. Notes are included in backup/sync but are not included in income, expense, budget, graph or balance calculations.
+## Safe offline flow
 
-## Install on Android
+When offline:
 
-1. Open the GitHub Pages live link in Chrome.
-2. Tap the three-dot menu.
-3. Tap **Add to Home screen** or **Install app**.
-4. Open it from the home screen like a normal app.
+- Add entries normally.
+- Edit/delete entries normally.
+- Add notes normally.
+- The top pill should show Offline and pending changes.
 
-## Data safety
+When internet returns:
 
-The app saves data locally first. Google Sheets is used for backup/sync. Use **Export JSON** sometimes for extra safety.
+- App will try to sync automatically.
+- You can also open Settings and tap Sync now.
+
+## Important two-device rule
+
+If father’s mobile and your mobile both edit data while offline, sync carefully. This version protects local data and queues changes, but Google Sheet is still a single backup copy. The safest flow is:
+
+1. On each device, open app while online.
+2. Import Sheet before making changes on the second device.
+3. Add/edit entries.
+4. Sync now.
+
+Full conflict merge will be handled in a future update.
