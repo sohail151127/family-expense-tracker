@@ -18,7 +18,7 @@
   const peopleDefaults = ['Combined / General','Father Zulfiqar','Mother Rafiq Bibi','Son Sohail','Grandson Sarim',"Son's Wife Kainat",'Daughter Sidra','Son Bilal'].map(n=>({id:slug(n),name:n,active:true}));
   const catDefaults = ['Grocery','Medicine','Bills','Food','Transport','Education','Home','Rent','Utilities','Milk','Vegetables','Other'].map(n=>({id:slug(n),name:n,active:true}));
   const accountDefaults = ['Cash','Bank','JazzCash','Easypaisa'].map(n=>({id:slug(n),name:n,openingBalance:0,active:true}));
-  const initialState = () => ({version:43,settings:{currency:'PKR',selectedMonth:monthKey(),syncUrl:'',pinHash:'',notesPinHash:'',budget:{expectedIncome:0,savingTarget:0,necessaryLimit:0,unnecessaryLimit:0}},people:clone(peopleDefaults),categories:clone(catDefaults),accounts:clone(accountDefaults),expenses:[],incomes:[],notes:[],debts:[],recurringExpenses:[],monthArchives:[],activity:[],meta:{createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),lastSyncAt:'',lastImportAt:'',syncPending:false,syncQueue:[],syncMessage:'Offline-first local storage ready.', storageEngine:'Local + IndexedDB mirror', offlineReady:false, lastAutoBackupAt:'', lastRemoteUpdatedAt:''}});
+  const initialState = () => ({version:44,settings:{currency:'PKR',selectedMonth:monthKey(),syncUrl:'',pinHash:'',notesPinHash:'',budget:{expectedIncome:0,savingTarget:0,necessaryLimit:0,unnecessaryLimit:0}},people:clone(peopleDefaults),categories:clone(catDefaults),accounts:clone(accountDefaults),expenses:[],incomes:[],notes:[],debts:[],recurringExpenses:[],monthArchives:[],activity:[],meta:{createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),lastSyncAt:'',lastImportAt:'',syncPending:false,syncQueue:[],syncMessage:'Offline-first local storage ready.', storageEngine:'Local + IndexedDB mirror', schemaVersion:44, offlineReady:false, lastAutoBackupAt:'', lastRemoteUpdatedAt:''}});
   let state = loadState();
   let currentView = 'home';
   let selectedPeople = [];
@@ -111,7 +111,7 @@
     st.recurringExpenses = (st.recurringExpenses||[]).map(e=>({...e,id:e.id||uid('rec'),type:'recurring',date:e.date||todayISO(),amount:Number(e.amount)||0,title:e.title||'Recurring expense',description:e.description||'',repeat:e.repeat||'monthly',accountId:e.accountId||'cash',peopleIds:arr(e.peopleIds||e.personId),categoryIds:arr(e.categoryIds||e.categoryId),createdAt:e.createdAt||new Date().toISOString(),updatedAt:e.updatedAt||new Date().toISOString()}));
     st.monthArchives = Array.isArray(st.monthArchives) ? st.monthArchives : [];
     st.activity = Array.isArray(st.activity) ? st.activity : [];
-    return st;
+    st.version = Math.max(Number(st.version)||0,44); st.meta.schemaVersion = 44; return st;
   }
   function arr(v){ if(Array.isArray(v)) return v.filter(Boolean); if(!v) return []; return [v]; }
   function save(change='Saved locally'){

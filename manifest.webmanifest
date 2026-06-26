@@ -1,12 +1,12 @@
 {
-  "name": "Family Expense Tracker V4.1 Offline",
+  "name": "Family Expense Tracker V4.4 Polish",
   "short_name": "FamilyExpense",
-  "description": "Offline-first family finance tracker with Google Sheet sync queue, entries, calendar, reports, and private notes.",
+  "description": "Premium offline-first family finance tracker with polished mobile UI, reports, sync, calendar, and private notes.",
   "start_url": "./index.html?source=pwa",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#f6f2ea",
-  "theme_color": "#13261f",
+  "background_color": "#f7f2e8",
+  "theme_color": "#123f33",
   "icons": [
     {
       "src": "icons/icon-192.png",

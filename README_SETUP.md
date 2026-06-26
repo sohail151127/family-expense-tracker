@@ -1,53 +1,39 @@
-# Family Expense Tracker – V4.3 Smart Stability
+# Family Expense Tracker V4.4 – Polish & Performance
 
-## What changed in V4.3
+This update focuses on premium mobile UI/UX, performance polish, safer cache updates, responsive calendar styling, cleaner settings actions, and app icon reliability.
 
-- Activity Log added in Settings.
-- Better Notes: pin, favorite, archive, priority, due date, filters, sorting.
-- Monthly Archive: create a locked monthly summary for the selected month.
-- Safer Sync: clearer import warning, sync history, last remote sync tracking, activity logs for sync/import/export.
-- Calendar fixed for mobile width overflow.
-- Calendar now starts with Monday and shows Monday–Sunday headers.
-- Calendar supports horizontal scrolling on narrow screens.
-- Calendar shows dots for income, expense, and notes.
-- Settings action descriptions moved outside buttons for cleaner UI.
+## What changed
 
-## Update GitHub Pages
+- Premium mobile-first UI polish
+- Better card spacing, shadows, typography, touch targets, and button states
+- Cleaner bottom navigation for small screens
+- Calendar remains responsive with horizontal scroll when required
+- Improved settings action layout with helper text outside buttons
+- Updated PWA cache version so mobiles receive the update
+- Fixed/kept app icons for install screen and manifest
+- Database schema version marked as V4.4 for future migrations
+- Better safe-area spacing for Android/iPhone style browsers
 
-Upload/replace these files in your GitHub repository root:
+## Update steps
+
+1. Export JSON backup from the current app first.
+2. Upload/replace these files in GitHub:
 
 - index.html
 - styles.css
 - app.js
 - sw.js
 - manifest.webmanifest
-- google-apps-script.gs
-- README_SETUP.md
 - icons folder
+- README_SETUP.md
+- google-apps-script.gs
 
-Commit changes.
+3. Commit changes.
+4. Apps Script usually does not need a logic change for this polish update, but paste the included `google-apps-script.gs` and deploy a new version if you want everything aligned.
+5. Open the GitHub Pages app on laptop and refresh 2–3 times.
+6. Open the mobile PWA while online, refresh/open once, wait 15–20 seconds, then close and reopen.
+7. Test offline after the first online load.
 
-## Update Google Apps Script
+## Mobile update tip
 
-1. Open your Google Sheet.
-2. Go to Extensions → Apps Script.
-3. Replace the old script with the new `google-apps-script.gs`.
-4. Deploy → Manage deployments → Edit.
-5. Select Version: New version.
-6. Click Deploy.
-
-## After updating
-
-1. Open the app on laptop first.
-2. Export JSON backup.
-3. Refresh 2–3 times so the new service worker/cache updates.
-4. Confirm the app shows V4.3 features.
-5. Click “Send local data to Google Sheet”.
-6. Refresh Google Sheet and confirm new tabs: ActivityLog and MonthlyArchives.
-7. On mobile, open the app with internet and refresh 2–3 times. Then use “Import data from Google Sheet”.
-
-## Important usage rule
-
-- Use **Send local data to Google Sheet** when the current device has the latest data.
-- Use **Import data from Google Sheet** on another device to pull the latest data from Google Sheet.
-
+If the installed app still shows the old design, remove the home-screen app and install it again from Chrome after opening the GitHub Pages link.
