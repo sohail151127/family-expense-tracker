@@ -156,6 +156,46 @@
     if(els.exportMonthlyReportBtn) els.exportMonthlyReportBtn.onclick = exportMonthlyReport; els.exportJsonBtn.onclick = exportJson; els.exportCsvBtn.onclick = exportCsv; els.importFile.onchange = importBackup; els.resetBtn.onclick = resetLocal;
     els.savePinsBtn.onclick = savePins; if(els.createArchiveBtn) els.createArchiveBtn.onclick = createMonthlyArchive; els.undoBtn.onclick = undoDelete;
   }
+
+  function openQuickAddMenu(){
+    if(!els.quickAddOverlay) return;
+    els.quickAddOverlay.classList.remove('hidden');
+    els.quickAddOverlay.setAttribute('aria-hidden','false');
+    document.body.classList.add('quick-add-open');
+  }
+  function closeQuickAddMenu(){
+    if(!els.quickAddOverlay) return;
+    els.quickAddOverlay.classList.add('hidden');
+    els.quickAddOverlay.setAttribute('aria-hidden','true');
+    document.body.classList.remove('quick-add-open');
+  }
+  function handleQuickAction(action){
+    closeQuickAddMenu();
+    if(['expense','income','note','debt','recurring'].includes(action)){
+      clearForm();
+      setAddType(action);
+      return;
+    }
+    if(action === 'person'){
+      const name = prompt('Enter new person name');
+      if(name) quickAdd('person', name, false);
+      renderAll();
+      return;
+    }
+    if(action === 'category'){
+      const name = prompt('Enter new category name');
+      if(name) quickAdd('category', name, false);
+      renderAll();
+      return;
+    }
+    if(action === 'account'){
+      const name = prompt('Enter new account name, for example Cash, Bank, JazzCash');
+      if(name) quickAdd('account', name, false);
+      renderAll();
+      return;
+    }
+  }
+
   function nav(view){ currentView=view; $$('.view').forEach(v=>v.classList.toggle('active',v.id===`view-${view}`)); $$('.bottom-nav button').forEach(b=>b.classList.toggle('active',b.dataset.nav===view)); els.pageTitle.textContent = ({home:'Dashboard',add:'Add Entry',entries:'Entries',reports:'Reports',calendar:'Calendar',notes:'Notes',settings:'Settings'}[view]||'Dashboard'); renderAll(); }
   function setAddType(type, switchTab=true){
     els.entryType.value=type; $$('#addTypeTabs button').forEach(b=>b.classList.toggle('active',b.dataset.type===type));
