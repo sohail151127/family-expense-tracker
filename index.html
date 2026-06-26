@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#13261f" />
-  <title>Family Expense Tracker V4.4 Polish & Performance</title>
+  <title>Family Expense Tracker V4.4.1 Floating Quick Add</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
   <link rel="stylesheet" href="styles.css" />
@@ -186,6 +186,33 @@
       <button data-nav="notes"><span>✎</span>Notes</button>
       <button data-nav="settings"><span>⚙</span>Settings</button>
     </nav>
+  </div>
+
+
+
+  <button id="floatingAddBtn" class="floating-add-btn" aria-label="Open quick add menu">＋</button>
+  <div id="quickAddOverlay" class="quick-add-overlay hidden" aria-hidden="true">
+    <div class="quick-add-backdrop" data-close-quick-add></div>
+    <div class="quick-add-sheet" role="dialog" aria-modal="true" aria-labelledby="quickAddTitle">
+      <div class="sheet-handle"></div>
+      <div class="section-head compact">
+        <div>
+          <h2 id="quickAddTitle">Quick add</h2>
+          <p>Add anything from anywhere in the app.</p>
+        </div>
+        <button class="btn tiny soft" type="button" data-close-quick-add>Close</button>
+      </div>
+      <div class="quick-add-grid">
+        <button type="button" data-quick-action="expense"><strong>Expense</strong><small>Add spending, people, categories, account, and necessary status.</small></button>
+        <button type="button" data-quick-action="income"><strong>Income</strong><small>Add pension, Sohail income, or other received money.</small></button>
+        <button type="button" data-quick-action="note"><strong>Note</strong><small>Create a private reminder note without affecting calculations.</small></button>
+        <button type="button" data-quick-action="debt"><strong>Pending payment</strong><small>Track money given, received, payable, or receivable.</small></button>
+        <button type="button" data-quick-action="recurring"><strong>Recurring</strong><small>Add regular bills or repeated expenses.</small></button>
+        <button type="button" data-quick-action="person"><strong>Person</strong><small>Add a new family member/person quickly.</small></button>
+        <button type="button" data-quick-action="category"><strong>Category</strong><small>Add a new spending category quickly.</small></button>
+        <button type="button" data-quick-action="account"><strong>Account</strong><small>Add Cash, Bank, Wallet, or any other account.</small></button>
+      </div>
+    </div>
   </div>
 
   <div id="toast" class="toast hidden"></div>

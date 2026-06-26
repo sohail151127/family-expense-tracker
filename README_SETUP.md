@@ -37,3 +37,7 @@ This update focuses on premium mobile UI/UX, performance polish, safer cache upd
 ## Mobile update tip
 
 If the installed app still shows the old design, remove the home-screen app and install it again from Chrome after opening the GitHub Pages link.
+
+## V4.4.1 Floating Quick Add
+
+This update adds a bottom-right floating + button that stays visible on every screen. It opens a mobile-friendly quick add sheet where users can add Expense, Income, Notes, Pending Payments, Recurring Expenses, People, Categories, and Accounts without hunting for add buttons on each page.

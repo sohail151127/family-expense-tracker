@@ -23,3 +23,34 @@ input,select,textarea{width:100%;border:1px solid #d7cdbc;background:#fff;paddin
 @media(max-width:760px){:root{--nav-h:78px}.app-shell{padding:14px 12px calc(var(--nav-h) + 22px)}.topbar{gap:8px}.topbar h1{font-size:22px}.eyebrow{font-size:10px}.status-pill{padding:8px 10px;font-size:11px}.dashboard-grid,.report-grid{grid-template-columns:1fr}.analytics-summary,.form-row.two,.quick-actions,.form-actions,.filter-row,.mini-grid{grid-template-columns:1fr}.hero-card{display:block}.hero-card input{margin-top:12px}.section-head{align-items:flex-start;flex-direction:column}.section-head .btn{width:100%}.metric-card strong{font-size:22px}.panel,.metric-card,.hero-card,.progress-card{border-radius:20px;padding:15px;margin:12px 0}.bottom-nav{width:calc(100% - 10px);gap:2px;padding:5px;border-radius:20px}.bottom-nav button{font-size:9px;padding:7px 1px}.bottom-nav button span{font-size:15px}.calendar-weekdays,.calendar-grid{min-width:640px}.calendar-weekdays{gap:4px}.calendar-grid{gap:4px}.cal-cell{min-height:66px;padding:6px;border-radius:12px}.entry-card .row{align-items:flex-start}.entry-card .amount{font-size:16px}.actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.actions button{width:100%}.notes-grid{grid-template-columns:1fr}.analytics-hero{display:block}.inline-add{grid-template-columns:1fr}.inline-add .btn{width:100%}}
 @media(max-width:380px){.bottom-nav button{font-size:8px}.bottom-nav button span{font-size:14px}.topbar{align-items:flex-start}.status-pill{max-width:128px;overflow:hidden;text-overflow:ellipsis}.metric-card strong{font-size:20px}.calendar-weekdays,.calendar-grid{min-width:600px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+/* V4.4.1 Floating quick add */
+.floating-add-btn{
+  position:fixed; right:clamp(16px,4vw,28px); bottom:calc(86px + env(safe-area-inset-bottom));
+  width:62px; height:62px; border-radius:999px; border:0; z-index:80;
+  background:linear-gradient(135deg,#173d31,#2f7d61); color:#fff; font-size:34px; line-height:1;
+  box-shadow:0 18px 44px rgba(19,38,31,.28),0 4px 12px rgba(19,38,31,.18);
+  display:flex; align-items:center; justify-content:center; cursor:pointer;
+  transition:transform .18s ease, box-shadow .18s ease, opacity .18s ease;
+}
+.floating-add-btn:hover{transform:translateY(-2px);box-shadow:0 22px 50px rgba(19,38,31,.32),0 6px 16px rgba(19,38,31,.18)}
+.floating-add-btn:active{transform:scale(.96)}
+.quick-add-overlay{position:fixed;inset:0;z-index:120;display:flex;align-items:flex-end;justify-content:center;padding:16px;padding-bottom:calc(16px + env(safe-area-inset-bottom));}
+.quick-add-overlay.hidden{display:none}
+.quick-add-backdrop{position:absolute;inset:0;background:rgba(8,20,16,.48);backdrop-filter:blur(8px)}
+.quick-add-sheet{position:relative;width:min(720px,100%);max-height:min(82vh,760px);overflow:auto;background:rgba(255,255,255,.98);border:1px solid rgba(23,61,49,.12);border-radius:28px;padding:18px;box-shadow:0 28px 80px rgba(8,20,16,.35);animation:sheetUp .2s ease both}
+@keyframes sheetUp{from{transform:translateY(22px);opacity:.5}to{transform:translateY(0);opacity:1}}
+.sheet-handle{width:44px;height:5px;border-radius:999px;background:#d8e1dc;margin:0 auto 14px}
+.section-head.compact{margin-bottom:12px}
+.quick-add-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.quick-add-grid button{text-align:left;border:1px solid rgba(23,61,49,.12);background:#f8fbf9;border-radius:18px;padding:14px;min-height:96px;box-shadow:0 8px 20px rgba(8,20,16,.05);cursor:pointer;transition:transform .16s ease, background .16s ease, border-color .16s ease}
+.quick-add-grid button:hover{background:#eef7f2;border-color:rgba(47,125,97,.28);transform:translateY(-1px)}
+.quick-add-grid button strong{display:block;font-size:15px;color:#13261f;margin-bottom:6px}
+.quick-add-grid button small{display:block;color:#65756e;font-size:12px;line-height:1.35}
+@media (max-width:520px){
+  .floating-add-btn{width:58px;height:58px;right:16px;bottom:calc(78px + env(safe-area-inset-bottom));font-size:32px}
+  .quick-add-overlay{padding:10px;padding-bottom:calc(10px + env(safe-area-inset-bottom))}
+  .quick-add-sheet{border-radius:24px;padding:14px;max-height:84vh}
+  .quick-add-grid{grid-template-columns:1fr;gap:8px}
+  .quick-add-grid button{min-height:78px;padding:13px}
+}

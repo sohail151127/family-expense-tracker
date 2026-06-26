@@ -27,7 +27,7 @@
   let lastDeleted = null;
 
   const els = {
-    app: $('#app'), lockScreen: $('#lockScreen'), pinInput: $('#pinInput'), unlockBtn: $('#unlockBtn'), pinError: $('#pinError'), pageTitle: $('#pageTitle'), syncStatus: $('#syncStatus'), syncDot: $('#syncDot'), syncText: $('#syncText'), toast: $('#toast'), undoBar: $('#undoBar'), undoText: $('#undoText'), undoBtn: $('#undoBtn'),
+    app: $('#app'), lockScreen: $('#lockScreen'), pinInput: $('#pinInput'), unlockBtn: $('#unlockBtn'), pinError: $('#pinError'), pageTitle: $('#pageTitle'), syncStatus: $('#syncStatus'), syncDot: $('#syncDot'), syncText: $('#syncText'), floatingAddBtn: $('#floatingAddBtn'), quickAddOverlay: $('#quickAddOverlay'), toast: $('#toast'), undoBar: $('#undoBar'), undoText: $('#undoText'), undoBtn: $('#undoBtn'),
     monthPicker: $('#monthPicker'), monthTitle: $('#monthTitle'), metricIncome: $('#metricIncome'), metricExpense: $('#metricExpense'), metricBalance: $('#metricBalance'), metricNecessary: $('#metricNecessary'), metricUnnecessary: $('#metricUnnecessary'), metricSaving: $('#metricSaving'), budgetPercent: $('#budgetPercent'), budgetBar: $('#budgetBar'), budgetText: $('#budgetText'), smartWidgets: $('#smartWidgets'), recentTimeline: $('#recentTimeline'),
     addTypeTabs: $('#addTypeTabs'), entryForm: $('#entryForm'), editingType: $('#editingType'), editingId: $('#editingId'), entryType: $('#entryType'), entryDate: $('#entryDate'), entryAmount: $('#entryAmount'), entryAccount: $('#entryAccount'), entryTitle: $('#entryTitle'), entryDescription: $('#entryDescription'), peopleChips: $('#peopleChips'), categoryChips: $('#categoryChips'), quickPersonName: $('#quickPersonName'), quickAddPerson: $('#quickAddPerson'), quickCategoryName: $('#quickCategoryName'), quickAddCategory: $('#quickAddCategory'), entryNecessary: $('#entryNecessary'), incomeSource: $('#incomeSource'), noteTag: $('#noteTag'), notePriority: $('#notePriority'), noteDueDate: $('#noteDueDate'), debtStatus: $('#debtStatus'), recurringRepeat: $('#recurringRepeat'), saveEntryBtn: $('#saveEntryBtn'), clearFormBtn: $('#clearFormBtn'),
     globalSearch: $('#globalSearch'), filterType: $('#filterType'), filterRange: $('#filterRange'), customRangeWrap: $('#customRangeWrap'), rangeFrom: $('#rangeFrom'), rangeTo: $('#rangeTo'), entriesCount: $('#entriesCount'), entriesSum: $('#entriesSum'), entriesTimeline: $('#entriesTimeline'),
@@ -136,6 +136,10 @@
   function bind(){
     $$('[data-nav]').forEach(b=>b.addEventListener('click',()=>nav(b.dataset.nav)));
     $$('[data-jump-add]').forEach(b=>b.addEventListener('click',()=>{ setAddType(b.dataset.jumpAdd); nav('add'); }));
+    if(els.floatingAddBtn) els.floatingAddBtn.addEventListener('click', openQuickAddMenu);
+    $$('[data-close-quick-add]').forEach(el=>el.addEventListener('click', closeQuickAddMenu));
+    $$('[data-quick-action]').forEach(el=>el.addEventListener('click',()=>handleQuickAction(el.dataset.quickAction)));
+    document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeQuickAddMenu(); });
     els.unlockBtn.onclick = async()=>{ if(await hash(els.pinInput.value)===state.settings.pinHash){ els.lockScreen.classList.add('hidden'); els.pinInput.value=''; } else els.pinError.textContent='Incorrect PIN.'; };
     els.monthPicker.onchange = ()=>{ state.settings.selectedMonth = els.monthPicker.value || monthKey(); save('Month changed'); renderAll(); };
     els.addTypeTabs.onclick = e=>{ const b=e.target.closest('button[data-type]'); if(b) setAddType(b.dataset.type); };
